@@ -22,6 +22,10 @@
 :- chr_constraint add_chunk_type(+,+).
 % add_chunk_type(ChunkTypeName, [SlotNames]).
 
+%
+% Rules
+%
+
 add_chunk_type(CT, []) <=> chunk_type(CT).
 add_chunk_type(CT, [S|Ss]) <=> chunk_type_has_slot(CT, S), add_chunk_type(CT, Ss).
 
