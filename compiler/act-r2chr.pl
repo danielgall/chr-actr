@@ -5,8 +5,6 @@ production_rule(production_rule(LHS,RHS)) --> lhs(LHS), [==>], rhs(RHS).
 
 lhs(lhs(BufTests)) --> buffer_tests(BufTests).
 
-rhs(rhs(b)) --> [b].
-
 buffer_tests(buffer_tests(BufferTest)) --> buffer_test(BufferTest).
 buffer_tests(buffer_tests(BufferTest, Next)) --> buffer_test(BufferTest), buffer_tests(Next).
 
@@ -15,17 +13,34 @@ buffer_test(buffer_test(Buffer, SlotTests)) --> [=], buffer(Buffer), [>], slot_t
 slot_tests(slot_tests(SlotTest)) --> slot_test(SlotTest).
 slot_tests(slot_tests(SlotTest, Next)) --> slot_test(SlotTest), slot_tests(Next).
 
-slot_test(slot_test(SlotTest)) --> slot_test_var(SlotTest).
-slot_test(slot_test(SlotTest)) --> slot_test_val(SlotTest).
+slot_test(slot_test(SVP)) --> slot_variable_pair(SVP).
+slot_test(slot_test(SVP)) --> slot_value_pair(SVP).
 
-slot_test_var(slot_test_var(Slot, Variable)) --> slot(Slot), [=], variable(Variable).
-slot_test_val(slot_test_val(Slot,Value)) --> slot(Slot), value(Value).
+slot_variable_pair(slot_variable_pair(Slot, Variable)) --> slot(Slot), [=], variable(Variable).
+slot_value_pair(slot_value_pair(Slot,Value)) --> slot(Slot), value(Value).
 
 
 buffer(buffer(BufferName)) --> [BufferName], { identifier(BufferName) }.
 slot(slot(SlotName)) --> [SlotName], { identifier(SlotName) }.
 value(value(ValueToken)) --> [ValueToken], {identifier(ValueToken)}.
 variable(variable(VariableName)) --> [VariableName], {identifier(VariableName)}.
+
+rhs(rhs(BufferOperations)) --> buffer_operations(BufferOperations).
+
+buffer_operations(buffer_operations(BufferChange)) --> buffer_change(BufferChange).
+buffer_operations(buffer_operations(BufferRequest)) --> buffer_request(BufferRequest).
+buffer_operations(buffer_operations(BufferChange, Next)) --> buffer_change(BufferChange), buffer_operations(Next).
+buffer_operations(buffer_operations(BufferRequest, Next)) --> buffer_request(BufferRequest), buffer_operations(Next).
+
+buffer_change(buffer_change(Buffer, SlotChange)) --> [=], buffer(Buffer), [>], slot_change(SlotChange).
+buffer_request(buffer_request(Buffer, SlotRequest)) --> [+], buffer(Buffer), [>], slot_request(SlotRequest).
+
+slot_change(slot_change(SVP)) --> slot_variable_pair(SVP).
+slot_change(slot_change(SVP)) --> slot_value_pair(SVP).
+
+slot_request(slot_request(SVP)) --> slot_variable_pair(SVP).
+slot_request(slot_request(SVP)) --> slot_value_pair(SVP).
+
 
 identifier(X) :-
   X \== '=', X \== '>', X \== '+'.
