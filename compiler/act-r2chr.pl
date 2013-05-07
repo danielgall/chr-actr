@@ -1,7 +1,9 @@
 %:- use_module(library(chr)).
 
 s(s(P)) --> production_rule(P).
-production_rule(production_rule(LHS,RHS)) --> lhs(LHS), [==>], rhs(RHS).
+production_rule(production_rule(Name, LHS, RHS)) --> ['('], [p], production_name(Name), lhs(LHS), [==>], rhs(RHS), [')'].
+
+production_name(production_name(ProductionName)) --> [ProductionName], { identifier(ProductionName) }.
 
 lhs(lhs(BufTests)) --> buffer_tests(BufTests).
 
@@ -22,8 +24,8 @@ slot_value_pair(slot_value_pair(Slot,Value)) --> slot(Slot), value(Value).
 
 buffer(buffer(BufferName)) --> [BufferName], { identifier(BufferName) }.
 slot(slot(SlotName)) --> [SlotName], { identifier(SlotName) }.
-value(value(ValueToken)) --> [ValueToken], {identifier(ValueToken)}.
-variable(variable(VariableName)) --> [VariableName], {identifier(VariableName)}.
+value(value(ValueToken)) --> [ValueToken], { identifier(ValueToken) }.
+variable(variable(VariableName)) --> [VariableName], { identifier(VariableName) }.
 
 rhs(rhs(BufferOperations)) --> buffer_operations(BufferOperations).
 
