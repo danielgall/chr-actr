@@ -2,6 +2,7 @@
 
 % getTokens(InList, Tokens)
 getTokens([], []).
+getTokens([X|Xs], Ts) :- white_space(X),getTokens(Xs,Ts). % handle whitespace seperately
 getTokens(In, [T|Ts]) :- getToken(start, In, Rest, T), getTokens(Rest, Ts).
 
 %
@@ -16,10 +17,12 @@ getToken(start, [X|Xs],Xs,T) :-
 % Handle white space to find word borders.
 %
 
-getToken(start, [X|Xs], Rest, T) :-
-  white_space(X), getToken(start, Xs,Rest,T).
+%getToken(start, [X], [], '') :-
+  %white_space(X).
 
-  
+%getToken(start, [X|Xs], Rest, T) :-
+  %white_space(X), getToken(start,Xs,Rest,T).
+    
 %
 % Handle identifiers (everything that begins with a letter and contains only letters or numbers).
 %
@@ -42,8 +45,10 @@ getToken(letters,R,R,S,W) :-
 % Basic facts
 %
 
-white_space(32).
-white_space(10).
+white_space(X) :- X < 33.
+%white_space(32).
+%white_space(10).
+%white_space(13).
 
 digit(D) :- 46 < D, D < 59.
 

@@ -1,0 +1,8 @@
+(p name 
+	=retrieval> 
+		slot1 val1 
+		slot2 val2
+==> 
+	+retrieval> 
+		slot1 val1)
+
