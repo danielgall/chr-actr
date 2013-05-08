@@ -1,3 +1,5 @@
+:- module(tokenizer, [getTokens/2]).
+
 % getTokens(InList, Tokens)
 getTokens([], []).
 getTokens(In, [T|Ts]) :- getToken(start, In, Rest, T), getTokens(Rest, Ts).
@@ -52,3 +54,4 @@ special_char(40). %(
 special_char(41). %)
 special_char(61). %=
 special_char(62). %>
+special_char(43). %+

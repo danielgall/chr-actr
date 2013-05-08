@@ -1,3 +1,4 @@
+:- module(parser, [parse/2]).
 %:- use_module(library(chr)).
 
 s(s(P)) --> production_rule(P).
