@@ -13,7 +13,13 @@ compile_file(F) :-
   open(F,read,S),
   readAll(S,Cs),
   compile(Cs,Structure),
-  write(Structure),
+  !,
+  %display(Structure),
+  compile_structure(Structure,Result),
   close(S).
 
 compile(X,S) :- getTokens(X,T), parse(T,S), write(S).
+
+compile_structure(s(S), R) :-
+nl,nl,
+  write(S).

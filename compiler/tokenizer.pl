@@ -3,7 +3,7 @@
 % getTokens(InList, Tokens)
 getTokens([], []).
 getTokens([X|Xs], Ts) :- white_space(X),getTokens(Xs,Ts). % handle whitespace seperately
-getTokens(In, [T|Ts]) :- getToken(start, In, Rest, T), getTokens(Rest, Ts).
+getTokens(In, [T|Ts]) :- getToken(start, In, Rest, T), !, getTokens(Rest, Ts).
 
 %
 % Handle special characters and reserved words first (defined by special_char predicate)
