@@ -26,9 +26,13 @@
 % public
 
 :- chr_constraint add_chunk_type(+,+).
-% add_chunk_type(ChunkTypeName, Slots)
+% add_chunk_type(+ChunkTypeName, +Slots)
+% Adds a new chunk type with name ChunkTypeName to the system. The slots are defined in the list Slots.
 
 :- chr_constraint add_dm(+).
+% add_dm(+Chunk)
+% Adds a chunk defined by Chunk to declarative memory.
+% The argument Chunk must be of type chunk.
 
 %
 % private
@@ -48,9 +52,9 @@
 
 % add_chunk_type(ChunkTypeName, [SlotNames]).
 
-%
-% Rules
-%
+%%%%%%%%%
+% Rules %
+%%%%%%%%%
 
 add_chunk_type(CT, []) <=> chunk_type(CT).
 add_chunk_type(CT, [S|Ss]) <=> chunk_type_has_slot(CT, S), add_chunk_type(CT, Ss).
