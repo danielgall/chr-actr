@@ -28,6 +28,8 @@
 :- chr_constraint add_chunk_type(+,+).
 % add_chunk_type(ChunkTypeName, Slots)
 
+:- chr_constraint add_dm(+).
+
 %
 % private
 :- chr_constraint check_slots(+,+).
@@ -53,13 +55,13 @@
 add_chunk_type(CT, []) <=> chunk_type(CT).
 add_chunk_type(CT, [S|Ss]) <=> chunk_type_has_slot(CT, S), add_chunk_type(CT, Ss).
 
-%add_dm(Chunk , []) <=> chunk(Chunk, Type).
-%add_dm(Chunk, [S::=Val|SVals])  <=> chunk_has_slot(S,Val), add_dm(Chunk, SVals).
+add_dm(chunk(Name, Type, [])) <=> chunk(Name, Type).
+add_dm(chunk(Name, Type, [(S,V)|Rest]))  <=> chunk_has_slot(Name, S,V), add_dm(chunk(Name,Type,Rest)).
 
 module_request(_,Chunk,ResChunk) <=> find_chunk(Chunk,ResChunk).
 
-chunk(ChunkName, ChunkType), find_chunk(chunk(Name,Type,Slots), ResChunk) ==> Name=ChunkName,Type=ChunkType,check_slots(ChunkName, Slots), return_chunk(ChunkName,ResChunk).
-chunk(ChunkName, ChunkType), find_chunk(chunk(Name,Type,Slots), ResChunk) ==> Name==ChunkName, Type==ChunkType | check_slots(ChunkName, Slots), return_chunk(ChunkName,ResChunk).
+chunk(ChunkName, ChunkType) \ find_chunk(chunk(Name,Type,Slots), ResChunk) <=> Name=ChunkName,Type=ChunkType,check_slots(ChunkName, Slots), return_chunk(ChunkName,ResChunk).
+%chunk(ChunkName, ChunkType) \ find_chunk(chunk(Name,Type,Slots), ResChunk) <=> Name==ChunkName, Type==ChunkType | check_slots(ChunkName, Slots), return_chunk(ChunkName,ResChunk).
 
 check_slots(_, []) <=> true.
 chunk_has_slot(ChunkName, S, V) \ check_slots(ChunkName, [(S,V)|Rest]) <=> check_slots(ChunkName, Rest).
