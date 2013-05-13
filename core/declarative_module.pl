@@ -56,7 +56,7 @@
 % Implemented abstract constraints from interface "module" %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-:- chr_constraint module_request(+,+,+).
+:- chr_constraint module_request(+,+chunk_def,+chunk_def).
 % module_request(BufName,Chunk,ResChunk)
 
 % add_chunk_type(ChunkTypeName, [SlotNames]).
@@ -72,7 +72,7 @@ add_dm(nil) <=> true.
 add_dm(chunk(Name, Type, [])) <=> chunk(Name, Type).
 add_dm(chunk(Name, Type, [(S,V)|Rest]))  <=> chunk_has_slot(Name, S,V), add_dm(chunk(Name,Type,Rest)).
 
-module_request(_,Chunk,ResChunk) <=> find_chunk(Chunk,ResChunk).
+module_request(retrieval,Chunk,ResChunk) <=> find_chunk(Chunk,ResChunk).
 
 chunk(ChunkName, ChunkType) \ find_chunk(chunk(Name,Type,Slots), ResChunk) <=> Name=ChunkName,Type=ChunkType,check_slots(ChunkName, Slots), return_chunk(ChunkName,ResChunk).
 %chunk(ChunkName, ChunkType) \ find_chunk(chunk(Name,Type,Slots), ResChunk) <=> Name==ChunkName, Type==ChunkType | check_slots(ChunkName, Slots), return_chunk(ChunkName,ResChunk).
