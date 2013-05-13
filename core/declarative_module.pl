@@ -2,9 +2,18 @@
 :- module(declarative_module, [module_request/3]).
 :- use_module(library(chr)).
 
+%%%%%%%%%%%%%%
+% Data Types %
+%%%%%%%%%%%%%%
+
+:- include(core_data_structures).
+
+:- chr_type lchunk_defs == list(chunk_def).
+
 %%%%%%%%%%%%%%%%%%%%
 % Data Constraints %
 %%%%%%%%%%%%%%%%%%%%
+
 :- chr_constraint chunk(+,+).
 % chunk(ChunkName, ChunkType)
 % 
@@ -29,7 +38,7 @@
 % add_chunk_type(+ChunkTypeName, +Slots)
 % Adds a new chunk type with name ChunkTypeName to the system. The slots are defined in the list Slots.
 
-:- chr_constraint add_dm(+).
+:- chr_constraint add_dm(+chunk_def).
 % add_dm(+Chunk)
 % Adds a chunk defined by Chunk to declarative memory.
 % The argument Chunk must be of type chunk.
@@ -40,8 +49,8 @@
 
 :- chr_constraint find_chunk(+,-).
 
-:- chr_constraint return_chunk(+,-).
-:- chr_constraint build_chunk_list(+,-).
+:- chr_constraint return_chunk(+,-chunk_def).
+:- chr_constraint build_chunk_list(+chunk_def,-chunk_def).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Implemented abstract constraints from interface "module" %
@@ -59,6 +68,7 @@
 add_chunk_type(CT, []) <=> chunk_type(CT).
 add_chunk_type(CT, [S|Ss]) <=> chunk_type_has_slot(CT, S), add_chunk_type(CT, Ss).
 
+add_dm(nil) <=> true.
 add_dm(chunk(Name, Type, [])) <=> chunk(Name, Type).
 add_dm(chunk(Name, Type, [(S,V)|Rest]))  <=> chunk_has_slot(Name, S,V), add_dm(chunk(Name,Type,Rest)).
 

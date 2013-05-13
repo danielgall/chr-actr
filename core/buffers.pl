@@ -3,11 +3,17 @@
 
 :- use_module(module_handler).
 
+%%%%%%%%%%%%%%
+% Data Types %
+%%%%%%%%%%%%%%
+
+:- include(core_data_structures).
+
 %%%%%%%%%%%%%%%%%%%%
 % Data Constraints %
 %%%%%%%%%%%%%%%%%%%%
 
-:- chr_constraint buffer(+,+,+).
+:- chr_constraint buffer(+,+,+chunk_def).
 % buffer(Name, ModName, Value)
 
 :- chr_constraint declarative_module(+). % saves the name of the declarative module (may be exchanged if another implementation should be used)
@@ -25,11 +31,11 @@
 % Buffers must have distinct names!
 % A module can have multiple buffers.
 
-:- chr_constraint buffer_request(+,+).
+:- chr_constraint buffer_request(+,+chunk_def).
 % buffer_request(+BufferName, +Chunk)
 % Performs a module_request on the corresponding module of buffer BufName with the (possibly not fully instantiated) chunk Chunk.
 
-:- chr_constraint buffer_change(+,+).
+:- chr_constraint buffer_change(+,+chunk_def).
 % buffer_change(+BufferName, +NewChunk)
 % Changes the value of buffer BufferName to NewChunk.
 
@@ -40,7 +46,7 @@
 %
 % Private
 
-:- chr_constraint write_to_dm(+).
+:- chr_constraint write_to_dm(+chunk_def).
 % write_to_dm(+Chunk)
 % Writes the chunk Chunk to declarative memory.
 % The module which acts as declarative memory is defined by declarative_module/1.
