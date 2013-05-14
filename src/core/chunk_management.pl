@@ -43,6 +43,10 @@
 % Adds a chunk defined by Chunk to the store.
 % The argument Chunk must be a list of chunk definitions.
 
+:- chr_constraint remove_chunk(+).
+% remove_chunk(ChunkName)
+% removes the chunk with name ChunkName from the store.
+
 :- chr_constraint return_chunk(+,-chunk_def).
 
 %
@@ -63,6 +67,10 @@ add_chunk(chunk(Name, Type, [(S,V)|Rest]))  <=> chunk_has_slot(Name, S,V), add_c
 
 add_chunks([]) <=> true.
 add_chunks([C|Cs]) <=> add_chunk(C), add_chunks(Cs).
+
+remove_chunk(Name) \ chunk(Name, _) <=> true.
+remove_chunk(Name) \ chunk_has_slot(Name, _, _) <=> true.
+remove_chunk(Name) <=> true.
 
 chunk(ChunkName, ChunkType) \ return_chunk(ChunkName,Res) <=> var(Res) | build_chunk_list(chunk(ChunkName, ChunkType, []),Res).
 
