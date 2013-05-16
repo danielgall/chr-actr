@@ -1,11 +1,11 @@
 (p name 
 	=goal>
 	  isa xnedder
-	  slot val
+	  slot =num1
 	=retrieval> 
 		slot1 val1 
-		slot2 val2
+		slot2 =num1
 ==> 
 	+retrieval> 
-		slot1 val1)
+		slot1 =num1)
 
