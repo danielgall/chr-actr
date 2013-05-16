@@ -1,4 +1,7 @@
 (p name 
+	=goal>
+	  isa xnedder
+	  slot val
 	=retrieval> 
 		slot1 val1 
 		slot2 val2
