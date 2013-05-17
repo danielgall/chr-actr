@@ -7,5 +7,14 @@
 		slot2 =num1
 ==> 
 	+retrieval> 
-		slot1 =num1)
+		slot1 =num1
+		slot2 test
+		slot3 =num4
+	+goal>
+	  goalslot	val
+	  gs1	=num4
+	=xnedder>
+	  bla blub
+	  foo =num1
+	  bar =num4)
 

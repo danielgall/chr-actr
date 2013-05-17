@@ -35,14 +35,27 @@ buffer_operations(buffer_operations(BufferRequest)) --> buffer_request(BufferReq
 buffer_operations(buffer_operations(BufferChange, Next)) --> buffer_change(BufferChange), buffer_operations(Next).
 buffer_operations(buffer_operations(BufferRequest, Next)) --> buffer_request(BufferRequest), buffer_operations(Next).
 
-buffer_change(buffer_change(Buffer, SlotChange)) --> [=], buffer(Buffer), [>], slot_change(SlotChange).
-buffer_request(buffer_request(Buffer, SlotRequest)) --> [+], buffer(Buffer), [>], slot_request(SlotRequest).
+buffer_change(buffer_change(Buffer, SlotRHSs)) --> [=], buffer(Buffer), [>], slot_rhss(SlotRHSs).
+buffer_request(buffer_request(Buffer, SlotRHSs)) --> [+], buffer(Buffer), [>], slot_rhss(SlotRHSs).
+%buffer_change(buffer_change(Buffer, SlotChanges)) --> [=], buffer(Buffer), [>], slot_changes(SlotChanges).
+%buffer_request(buffer_request(Buffer, SlotRequests)) --> [+], buffer(Buffer), [>], slot_requests(SlotRequests).
 
-slot_change(slot_change(SVP)) --> slot_variable_pair(SVP).
-slot_change(slot_change(SVP)) --> slot_value_pair(SVP).
+slot_rhss(slot_rhss(SC)) --> slot_rhs(SC).
+slot_rhss(slot_rhss(SC, Next)) --> slot_rhs(SC), slot_rhss(Next).
+%slot_changes(slot_changes(SC)) --> slot_change(SC).
+%slot_changes(slot_changes(SC, Next)) --> slot_change(SC), slot_changes(Next).
 
-slot_request(slot_request(SVP)) --> slot_variable_pair(SVP).
-slot_request(slot_request(SVP)) --> slot_value_pair(SVP).
+%slot_requests(slot_requests(SR)) --> slot_request(SR).
+%slot_requests(slot_requests(SR, Next)) --> slot_request(SR), slot_requests(Next).
+
+
+slot_rhs(slot_rhs(SVP)) --> slot_variable_pair(SVP).
+slot_rhs(slot_rhs(SVP)) --> slot_value_pair(SVP).
+%slot_change(slot_change(SVP)) --> slot_variable_pair(SVP).
+%slot_change(slot_change(SVP)) --> slot_value_pair(SVP).
+
+%slot_request(slot_request(SVP)) --> slot_variable_pair(SVP).
+%slot_request(slot_request(SVP)) --> slot_value_pair(SVP).
 
 
 identifier(X) :-

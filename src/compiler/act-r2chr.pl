@@ -62,20 +62,30 @@ compile_structure2(buffer_operations(BufOp, Next),R) <=>
   
 compile_structure2(buffer_request(buffer(Buffer), SlotRequests),R) <=>
   compile_structure2(SlotRequests,RSlots),
-  R = [buffer_request(Buffer, RSlots)].
+  R = [buffer_request(Buffer, chunk(_,_,RSlots))].
+  
+compile_structure2(buffer_change(buffer(Buffer), SlotChanges),R) <=>
+  compile_structure2(SlotChanges,RSlots),
+  R = [buffer_change(Buffer, chunk(_,_,RSlots))].
+  
+compile_structure2(slot_rhss(SR), R) <=>
+  compile_structure2(SR, R).
+  
+compile_structure2(slot_rhss(SR, Next), R) <=>
+  compile_structure2(SR, RSR),
+  compile_structure2(Next, RNext),
+  append(RSR,RNext,R).
 
-compile_structure2(slot_request(slot_value_pair(slot(S),value(V))),R) <=>
-  R = chunk(_, _, [(S,V)]).
+compile_structure2(slot_rhs(slot_value_pair(slot(S),value(V))),R) <=>
+  R = [(S,V)].
   
-symbol_table(V, Var) \ compile_structure2(slot_request(slot_variable_pair(slot(S),variable(V))),R) <=>
-  write(symbol_table(V, Var)),nl,
-  R = chunk(_, _, [(S,Var)]).  
+symbol_table(V, Var) \ compile_structure2(slot_rhs(slot_variable_pair(slot(S),variable(V))),R) <=>
+  R = [(S,Var)].
   
-compile_structure2(slot_request(slot_variable_pair(slot(S),variable(V))),R) <=>
-  write('new '), write(symbol_table(V, Var)),nl,
+compile_structure2(slot_rhs(slot_variable_pair(slot(S),variable(V))),R) <=>
   symbol_table(V, Var),
-  R = chunk(_, _, [(S,Var)]).  
-
+  R = [(S,Var)].
+   
 /*
 s(
 production_rule(
@@ -98,6 +108,10 @@ production_rule(
 	slot_request(
 	  slot_value_pair(
 	    slot(slot1),value(val1))))))))
+
+	    
+name@buffer(goal,A),chunk_has_slot(A,isa,xnedder),chunk_has_slot(A,slot,B),buffer(retrieval,C),chunk_has_slot(C,slot1,val1),chunk_has_slot(C,slot2,B)==>
+true|buffer_request(retrieval,chunk(D,E,[ (slot1,B), (slot2,test)| (slot3,F)])).
 
   
 
