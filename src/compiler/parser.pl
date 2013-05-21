@@ -1,5 +1,26 @@
 :- module(parser, [parse/2]).
-%:- use_module(library(chr)).
+
+% DCG rule implementation of grammar:
+% s -> production_rule
+% production_rule -> '(p' production_name lhs '==>' rhs ')'
+% production_name -> // some identifier
+% lhs -> buffer_tests
+% buffer_tests -> buffer_test | buffer_test buffer_tests
+% buffer_test -> '=' buffer '>' slot_tests
+% slot_tests -> slot_test | slot_test slot_tests
+% slot_test --> slot_variable_pair
+% slot_test --> slot_value_pair
+% slot_variable_pair -> slot '=' variable
+% slot_value_pair -> slot value
+% slot | variable | value -> // some identifier
+% rhs -> buffer_operations
+% buffer_operations -> buffer_change | buffer_request | buffer_change buffer_operations | buffer_request buffer_operations
+% buffer_change -> '=' buffer '>' slot_rhss
+% buffer_request -> '+' buffer '>' slot_rhss
+% slot_rhss -> slot_rhs | slot_rhs slot_rhss
+% slot_rhs -> slot_variable_pair | slot_value_pair
+% identifier -> // everything that is not '=', '>' or '+' (which means: a reserved word).
+%
 
 s(s(P)) --> production_rule(P).
 production_rule(production_rule(Name, LHS, RHS)) --> ['('], [p], production_name(Name), lhs(LHS), [==>], rhs(RHS), [')'].
@@ -22,7 +43,6 @@ slot_test(slot_test(SVP)) --> slot_value_pair(SVP).
 slot_variable_pair(slot_variable_pair(Slot, Variable)) --> slot(Slot), [=], variable(Variable).
 slot_value_pair(slot_value_pair(Slot,Value)) --> slot(Slot), value(Value).
 
-
 buffer(buffer(BufferName)) --> [BufferName], { identifier(BufferName) }.
 slot(slot(SlotName)) --> [SlotName], { identifier(SlotName) }.
 value(value(ValueToken)) --> [ValueToken], { identifier(ValueToken) }.
@@ -37,25 +57,12 @@ buffer_operations(buffer_operations(BufferRequest, Next)) --> buffer_request(Buf
 
 buffer_change(buffer_change(Buffer, SlotRHSs)) --> [=], buffer(Buffer), [>], slot_rhss(SlotRHSs).
 buffer_request(buffer_request(Buffer, SlotRHSs)) --> [+], buffer(Buffer), [>], slot_rhss(SlotRHSs).
-%buffer_change(buffer_change(Buffer, SlotChanges)) --> [=], buffer(Buffer), [>], slot_changes(SlotChanges).
-%buffer_request(buffer_request(Buffer, SlotRequests)) --> [+], buffer(Buffer), [>], slot_requests(SlotRequests).
 
 slot_rhss(slot_rhss(SC)) --> slot_rhs(SC).
 slot_rhss(slot_rhss(SC, Next)) --> slot_rhs(SC), slot_rhss(Next).
-%slot_changes(slot_changes(SC)) --> slot_change(SC).
-%slot_changes(slot_changes(SC, Next)) --> slot_change(SC), slot_changes(Next).
-
-%slot_requests(slot_requests(SR)) --> slot_request(SR).
-%slot_requests(slot_requests(SR, Next)) --> slot_request(SR), slot_requests(Next).
-
 
 slot_rhs(slot_rhs(SVP)) --> slot_variable_pair(SVP).
 slot_rhs(slot_rhs(SVP)) --> slot_value_pair(SVP).
-%slot_change(slot_change(SVP)) --> slot_variable_pair(SVP).
-%slot_change(slot_change(SVP)) --> slot_value_pair(SVP).
-
-%slot_request(slot_request(SVP)) --> slot_variable_pair(SVP).
-%slot_request(slot_request(SVP)) --> slot_value_pair(SVP).
 
 
 identifier(X) :-

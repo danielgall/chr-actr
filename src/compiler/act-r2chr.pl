@@ -85,58 +85,45 @@ compile_structure2(slot_rhs(slot_variable_pair(slot(S),variable(V))),R) <=>
   symbol_table(V, Var),
   R = [(S,Var)].
    
-/*
-s(
-production_rule(
-  production_name(name),
-  lhs(
-    buffer_tests(
-      buffer_test(
-	buffer(retrieval),
-	slot_tests(
-	  slot_test(
-	    slot_value_pair(
-	      slot(slot1),value(val1))),
-	      slot_tests(
-		slot_test(
-		slot_value_pair(slot(slot2),value(val2)))))))),
-  rhs(
-    buffer_operations(
-      buffer_request(
-	buffer(retrieval),
-	slot_request(
-	  slot_value_pair(
-	    slot(slot1),value(val1))))))))
+% 
+% Compile slot_tests and slot_test
+%
 
-	    
-name@buffer(goal,A),chunk_has_slot(A,isa,xnedder),chunk_has_slot(A,slot,B),buffer(retrieval,C),chunk_has_slot(C,slot1,val1),chunk_has_slot(C,slot2,B)==>
-true|buffer_request(retrieval,chunk(D,E,[ (slot1,B), (slot2,test)| (slot3,F)])).
-
-  
-
-  */
-
+% structure: single slot_test in slot_tests-environment.
+% returns: list containing that slot_test in form of a chunk_has_slot constraint
 compile_structure3(slot_tests(SlotTest), Chunk, R) <=>
   compile_structure3(SlotTest, Chunk, R).
-  
+
+% structure: slot_test followed by next slot_tests in slot_tests-environment
+% returns: list containing all the slot_tests in form of chunk_has_slot constraints
 compile_structure3(slot_tests(SlotTest, Next), Chunk, R) <=>
   compile_structure3(SlotTest, Chunk, RSlotTest),
   compile_structure3(Next, Chunk, RNext),
   append(RSlotTest,RNext,R).
 
+% structure: slot_test containing one slot-value-pair with slot S and value V
+% returns: a list containing this one slot_test in form of a chunk_has_slot constraint  
 compile_structure3(slot_test(slot_value_pair(slot(S),value(V))), Chunk, R) <=>
   R = [chunk_has_slot(Chunk,S,V)].
 
+% structure: slot_test containing one slot-variable-pair with slot S and variable V
+% If the variable V already has been used in this rule, it will be bound to that former variable.
+% returns: a list containing this one slot_test in form of a chunk_has_slot constraint  
 symbol_table(V, Var) \ compile_structure3(slot_test(slot_variable_pair(slot(S),variable(V))), Chunk, R) <=>
   R = [chunk_has_slot(Chunk,S,Var)].
   
 compile_structure3(slot_test(slot_variable_pair(slot(S),variable(V))), Chunk, R) <=>
   symbol_table(V, Var),
   R = [chunk_has_slot(Chunk,S,Var)].
+
   
+%
+% at end of block (which means at the end of the definition of this ACT-R production rule): 
+% delete all symbol_table constraints to clear symbol table.
 end_of_block \ symbol_table(_,_) <=> true.
 end_of_block <=> true.
-  
+
+% translate chrl constraints to chr constraints containing goals instead of lists
 chrl(N,KL,RL,GL,BL) <=> 
   list2goal(KL,K),
   list2goal(RL,R),
@@ -144,12 +131,19 @@ chrl(N,KL,RL,GL,BL) <=>
   list2goal(BL,B),
   numbervars((K,R,G,B)), % pretty print variables
   chr(N,K,R,G,B).
-  
+
+% takes a list and transforms it to a goal
 list2goal([],G) <=> G=true.
 list2goal([X],G) <=> G=X.
 list2goal([X|Xs],G) <=> G=(X,Gs),
   list2goal(Xs,Gs).
-  
+
+%
+% Output: transform chr constraints to textual CHR-rules.
+% If constraint console is in store: Output on console,
+% If constraint file is in store: Output to file.
+%
+
 % simplification  
 console \ chr(N,K,R,G,B) <=> K == true | write(N @ R<=>G|B), write('.\n').
 
@@ -158,6 +152,21 @@ console \ chr(N,K,R,G,B) <=> R == true | write(N @ K==>G|B), write('.\n').
 
 % simpagation
 console \ chr(N,K,R,G,B) <=> K \== true, R \== true | write(N @ K\R<=>G|B), write('.\n').
+
+% Output to some stream (eg. a file)
+
+% simplification  
+stream(S, write) \ chr(N, K,R,G,B) <=> K == true | write(S, N @ R<=>G|B), write(S, '.\n').
+
+% propagation  
+stream(S, write) \ chr(N, K,R,G,B) <=> R == true | write(S, N @ K==>G|B), write(S, '.\n').
+
+% simpagation
+stream(S, write) \ chr(N, K,R,G,B) <=> K \== true, R \== true | write(S, N @ K\R<=>G|B), write(S, '.\n').
+
+%
+% File I/O handling
+%
 
 file(new) <=> 
   open('out.pl', write, S),
@@ -173,14 +182,9 @@ file(read) <=>
   
 file(end), stream(S,write) <=> close(S).
 
-% simplification  
-stream(S, write) \ chr(N, K,R,G,B) <=> K == true | write(S, N @ R<=>G|B), write(S, '.\n').
-
-% propagation  
-stream(S, write) \ chr(N, K,R,G,B) <=> R == true | write(S, N @ K==>G|B), write(S, '.\n').
-
-% simpagation
-stream(S, write) \ chr(N, K,R,G,B) <=> K \== true, R \== true | write(S, N @ K\R<=>G|B), write(S, '.\n').
+%
+%% File Input (not used)
+%%
 
 stream(S, read) <=> at_end_of_stream(S) | true.
 stream(S, read) <=> \+at_end_of_stream(S) | read(S,L), line(L), stream(S,read).
