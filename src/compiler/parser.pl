@@ -23,6 +23,7 @@
 %
 
 s(s(P)) --> production_rule(P).
+s(s(P, Ss)) --> production_rule(P), s(Ss).
 production_rule(production_rule(Name, LHS, RHS)) --> ['('], [p], production_name(Name), lhs(LHS), [==>], rhs(RHS), [')'].
 
 production_name(production_name(ProductionName)) --> [ProductionName], { identifier(ProductionName) }.

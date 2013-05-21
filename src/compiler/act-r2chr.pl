@@ -25,6 +25,7 @@ compile_file(F) :-
 compile(X,S) :- getTokens(X,T), parse(T,S), write(S).
 
 compile_structure(s(S)) <=> compile_structure(S).
+compile_structure(s(S, Ss)) <=> compile_structure(S), compile_structure(Ss).
 
 compile_structure(production_rule(production_name(Name), LHS, RHS)) <=> 
   compile_structure2(LHS, Left), 
