@@ -30,7 +30,7 @@ getToken(start, [X|Xs],Rest,T) :-
   letter(X), getToken(letters, Xs,Rest,[X],T).
   
 getToken(letters, [C|R],Rest,S,T) :-
-  (letter(C); digit(C)), 
+  (letter(C); digit(C); minus(C)), 
   getToken(letters,R,Rest,[C|S],T).
   
 getToken(letters,R,R,S,W) :-
@@ -55,8 +55,13 @@ digit(D) :- 46 < D, D < 59.
 letter(L) :- 64 < L, L < 91.
 letter(L) :- 96 < L, L < 123.
 
+minus(C) :- C == 45.
+
+special_char(33). %(
 special_char(40). %(
 special_char(41). %)
+special_char(43). %+
+special_char(45). %-
 special_char(61). %=
 special_char(62). %>
-special_char(43). %+
+

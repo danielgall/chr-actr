@@ -15,11 +15,15 @@ readAll(S,[C|Cs]) :-
 compile_file(F) :-
   open(F,read,S),
   readAll(S,Cs),
-  compile(Cs,Structure), !,
+  getTokens(Cs,T),!,
+  write(T),
+  parse(T,Structure),!,
+  write(Structure),
+  %compile(Cs,Structure), !,
   %display(Structure),
   console,
   nl,nl,
-  compile_structure(Structure), !,
+  %compile_structure(Structure), !,
   close(S).
 
 compile(X,S) :- getTokens(X,T), parse(T,S), write(S).
