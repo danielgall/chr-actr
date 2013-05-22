@@ -2,7 +2,7 @@
 :- use_module(tokenizer).
 :- use_module(parser).
 
-:- chr_constraint chr/5,chrl/5, list2goal/2, file/1, stream/2, console/0, line/1,compile_structure/1,compile_structure2/2,compile_structure3/3,symbol_table/2, end_of_block/0.
+:- chr_constraint spypoint/0, chr/5,chrl/5, list2goal/2, file/1, stream/2, console/0, line/1,compile_structure/1,compile_structure2/2,compile_structure3/3,symbol_table/2, end_of_block/0.
 
 readAll(S, []) :-
   at_end_of_stream(S).
@@ -16,26 +16,25 @@ compile_file(F) :-
   open(F,read,S),
   readAll(S,Cs),
   getTokens(Cs,T),!,
+  nl, nl,
   write(T),
   parse(T,Structure),!,
+  nl, nl,
   write(Structure),
-  %compile(Cs,Structure), !,
-  %display(Structure),
   console,
   nl,nl,
-  %compile_structure(Structure), !,
+  compile_structure(Structure), !,
   close(S).
 
-compile(X,S) :- getTokens(X,T), parse(T,S), write(S).
 
 compile_structure(s(S)) <=> compile_structure(S).
 compile_structure(s(S, Ss)) <=> compile_structure(S), compile_structure(Ss).
 
 compile_structure(production_rule(production_name(Name), LHS, RHS)) <=> 
-  compile_structure2(LHS, Left), 
-  compile_structure2(RHS, Right),
+  compile_structure2(LHS, Head), 
+  compile_structure2(RHS, Body),
   end_of_block,
-  chrl(Name, Left,[],[],Right).
+  chrl(Name, Head,[],[],Body).
 
 compile_structure2(lhs(BufferTests),R) <=>
   compile_structure2(BufferTests,R).
@@ -65,20 +64,80 @@ compile_structure2(buffer_operations(BufOp, Next),R) <=>
   append(RBufOp,RNext,R).
   
 compile_structure2(buffer_request(buffer(Buffer), SlotRequests),R) <=>
-  compile_structure2(SlotRequests,RSlots),
-  R = [buffer_request(Buffer, chunk(_,_,RSlots))].
+  compile_structure3(SlotRequests,RSlots,RFuncCalls),
+  append([buffer_request(Buffer, chunk(_,_,RSlots))],RFuncCalls,R).
   
 compile_structure2(buffer_change(buffer(Buffer), SlotChanges),R) <=>
-  compile_structure2(SlotChanges,RSlots),
-  R = [buffer_change(Buffer, chunk(_,_,RSlots))].
+  compile_structure3(SlotChanges,RSlots,RFuncCalls),
+  append([buffer_change(Buffer, chunk(_,_,RSlots))],RFuncCalls,R).
   
-compile_structure2(slot_rhss(SR), R) <=>
-  compile_structure2(SR, R).
   
-compile_structure2(slot_rhss(SR, Next), R) <=>
-  compile_structure2(SR, RSR),
+ 
+ 
+ 
+compile_structure2(buffer_clear(buffer(Buffer), FuncCalls),R) <=>
+  compile_structure2(FuncCalls,RFuncCalls),
+  list2goal(RFuncCalls, FuncCallGoals),
+  R = [buffer_clear(Buffer), FuncCallGoals]. % TODO funccalls!!
+  
+ 
+compile_structure2(function_calls(FuncCalls), R) <=>
+  compile_structure2(FuncCalls, R).
+  
+compile_structure2(function_calls(FuncCalls, Next), R) <=>
+  compile_structure2(FuncCalls, RFC),
   compile_structure2(Next, RNext),
+  append(RFC,RNext,R).
+  
+  
+compile_structure2(function_call(functor(Functor), Args), R) <=>
+  compile_structure2(Args, RArgs),
+  F =.. [Functor|RArgs],
+  R = [F].
+
+  
+compile_structure2(func_args(func_arg(value(Arg))), R) <=>
+  R = [Arg].
+  
+compile_structure2(func_args(func_arg(value(Arg)), Next), R) <=>
+  compile_structure2(Next, RNext),
+  append([Arg],RNext,R).
+  
+  
+symbol_table(V, Arg) \ compile_structure2(func_args(func_arg(variable(V))), R) <=>
+  R = [Arg].
+  
+symbol_table(V, Arg) \ compile_structure2(func_args(func_arg(variable(V)), Next), R) <=>
+  compile_structure2(Next, RNext),
+  append([Arg],RNext,R).
+  
+compile_structure2(func_args(func_arg(variable(V))), R) <=>
+  symbol_table(V, Arg),
+  R = [Arg].
+  
+compile_structure2(func_args(func_arg(variable(V)), Next), R) <=>
+  symbol_table(V, Arg),
+  compile_structure2(Next, RNext),
+  append([Arg],RNext,R).
+  
+  
+compile_structure3(slot_rhss(slot_rhs(SR)), R, RFC) <=>
+  RFC = [],
+  compile_structure2(slot_rhs(SR), R).
+  
+compile_structure3(slot_rhss(slot_rhs(SR), Next), R, RNextFunctions) <=>
+  compile_structure2(slot_rhs(SR), RSR),
+  compile_structure3(Next, RNext,RNextFunctions),
   append(RSR,RNext,R).
+  
+compile_structure3(slot_rhss(function_call(F,Args)), RS, R) <=>
+  RS = [],
+  compile_structure2(function_call(F,Args), R).
+  
+compile_structure3(slot_rhss(function_call(F,Args), Next), RNextSlots, R) <=>
+  compile_structure2(function_call(F,Args), RFC),
+  compile_structure3(Next, RNextSlots, RNextFunctions),
+  append(RFC,RNextFunctions,R).
 
 compile_structure2(slot_rhs(slot_value_pair(slot(S),value(V))),R) <=>
   R = [(S,V)].

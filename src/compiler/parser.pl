@@ -69,12 +69,14 @@ buffer_request(buffer_request(Buffer, SlotRHSs)) --> [+], buffer(Buffer), [>], s
 buffer_clear(buffer_clear(Buffer)) --> [-], buffer(Buffer), [>].
 buffer_clear(buffer_clear(Buffer, FunctionCalls)) --> [-], buffer(Buffer), [>], function_calls(FunctionCalls).
 
+slot_rhss(slot_rhss(Call)) --> function_call(Call).
+slot_rhss(slot_rhss(Call, Next)) --> function_call(Call), slot_rhss(Next).
+
 slot_rhss(slot_rhss(SC)) --> slot_rhs(SC).
 slot_rhss(slot_rhss(SC, Next)) --> slot_rhs(SC), slot_rhss(Next).
 
 slot_rhs(slot_rhs(SVP)) --> slot_variable_pair(SVP).
 slot_rhs(slot_rhs(SVP)) --> slot_value_pair(SVP).
-slot_rhs(slot_rhs(Call)) --> function_call(Call).
 
 function_calls(function_calls(FunctionCall)) --> function_call(FunctionCall).
 function_calls(function_calls(FunctionCall, Next)) --> function_call(FunctionCall), function_calls(Next).
