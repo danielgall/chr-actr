@@ -56,9 +56,9 @@ compile_structure2_lhs(buffer_tests(BufferTest, Next),R,Guard) <=>
   append(RBufferTest,RNext,R),
   append(Guard1,Guard2,Guard).
   
-compile_structure2_lhs(buffer_test(buffer(Buffer), SlotTests),R, Guard) <=>
+compile_structure2_lhs(buffer_test(buffer(Buffer), ChunkType, SlotTests),R, Guard) <=>
   compile_structure3_lhs(SlotTests, Chunk, R1,Guard),
-  R = [buffer(Buffer,Chunk)|R1].
+  R = [buffer(Buffer,Chunk), chunk(Chunk,ChunkType)|R1].
   
 % 
 % Compile slot_tests and slot_test

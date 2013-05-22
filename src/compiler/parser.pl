@@ -33,7 +33,7 @@ lhs(lhs(BufTests)) --> buffer_tests(BufTests).
 buffer_tests(buffer_tests(BufferTest)) --> buffer_test(BufferTest).
 buffer_tests(buffer_tests(BufferTest, Next)) --> buffer_test(BufferTest), buffer_tests(Next).
 
-buffer_test(buffer_test(Buffer, SlotTests)) --> [=], buffer(Buffer), [>], slot_tests(SlotTests).
+buffer_test(buffer_test(Buffer, ChunkType, SlotTests)) --> [=], buffer(Buffer), [>, isa, ChunkType], slot_tests(SlotTests), {identifier(ChunkType)}.
 
 slot_tests(slot_tests(SlotTest)) --> slot_test(SlotTest).
 slot_tests(slot_tests(SlotTest, Next)) --> slot_test(SlotTest), slot_tests(Next).
