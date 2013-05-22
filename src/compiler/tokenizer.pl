@@ -26,8 +26,10 @@ getToken(start, [X|Xs],Xs,T) :-
 %
 % Handle identifiers (everything that begins with a letter and contains only letters or numbers).
 %
-getToken(start, [X|Xs],Rest,T) :-
-  letter(X), getToken(letters, Xs,Rest,[X],T).
+getToken(start, [X|Xs],Rest,LT) :-
+  letter(X), 
+  getToken(letters, Xs,Rest,[X],T), % find rest of word
+  downcase_atom(T,LT). % convert uppercase letters to lowercase
   
 getToken(letters, [C|R],Rest,S,T) :-
   (letter(C); digit(C); minus(C)), 
