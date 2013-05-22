@@ -1,16 +1,16 @@
 :- use_module(library(chr)). 
 
-:- use_module(module_handler).
-
 %%%%%%%%%%%%%%
 % Data Types %
 %%%%%%%%%%%%%%
 
-:- include(core_data_structures).
+%:- include(core_data_structures).
 
 %%%%%%%%%%%%%%%%%%%%
 % Data Constraints %
 %%%%%%%%%%%%%%%%%%%%
+
+:- include(chunk_management).
 
 :- chr_constraint buffer(+,+,+).
 % buffer(Name, ModName, ChunkName)
@@ -66,7 +66,7 @@ buffer(BufName, _, _) \ add_buffer(BufName, _) <=> false. % buffers must have di
 add_buffer(BufName, ModName) <=> buffer(BufName, ModName, nil). % create empty buffer
 
 % Handle buffer_request
-buffer_request(BufName, Chunk), buffer(BufName, ModName, _) <=> do_action(ModName, module_request(BufName, Chunk, ResChunk)), buffer(BufName, ModName, ResChunk).
+buffer_request(BufName, Chunk), buffer(BufName, ModName, _) <=> ModName:module_request(BufName, Chunk, ResChunk), buffer(BufName, ModName, ResChunk).
 
 % Handle buffer_change
 buffer_change(BufName, NewChunk), buffer(BufName, _, OldChunk) <=> 
@@ -85,6 +85,6 @@ set_buffer(BufName, chunk(ChunkName, _, _)), buffer(BufName, ModName, _) <=>
 buffer_clear(BufName), buffer(BufName, ModName, Chunk) <=> write_to_dm(Chunk), buffer(BufName, ModName, nil).
 
 % Handle write_to_dm
-declarative_module(DM) \ write_to_dm(ChunkName) <=> return_chunk(ChunkName, ResChunk), do_action(DM, add_dm(ResChunk)).
+declarative_module(DM) \ write_to_dm(ChunkName) <=> return_chunk(ChunkName, ResChunk), DM:add_dm(ResChunk).
 
 
