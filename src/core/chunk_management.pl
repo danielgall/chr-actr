@@ -22,6 +22,8 @@
 :- chr_constraint chunk_has_slot(+,+,+).
 % chunk_has_slot(ChunkName, SlotName, Value)
 
+:- chr_constraint alter_slots(+,+slot_list), alter_slot(+,+,+).  
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % Procedural Constraints %
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -67,10 +69,21 @@ add_chunk(chunk(Name, Type, [(S,V)|Rest]))  <=> chunk_has_slot(Name, S,V), add_c
 
 add_chunks([]) <=> true.
 add_chunks([C|Cs]) <=> add_chunk(C), add_chunks(Cs).
+  
+alter_slots(_,[]) <=> true.
+alter_slots(Chunk,[(S,V)|SVs]) <=> 
+  alter_slot(Chunk,S,V),
+  alter_slots(Chunk,SVs).
+  
+alter_slot(Chunk,Slot,Value), chunk_has_slot(Chunk,Slot,_) <=>
+  chunk_has_slot(Chunk,Slot,Value).
+  
+alter_slot(Chunk,Slot,Value) <=>
+  chunk_has_slot(Chunk,Slot,Value).
 
 remove_chunk(Name) \ chunk(Name, _) <=> true.
 remove_chunk(Name) \ chunk_has_slot(Name, _, _) <=> true.
-remove_chunk(Name) <=> true.
+remove_chunk(_) <=> true.
 
 chunk(ChunkName, ChunkType) \ return_chunk(ChunkName,Res) <=> var(Res) | build_chunk_list(chunk(ChunkName, ChunkType, []),Res).
 

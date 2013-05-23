@@ -52,7 +52,7 @@
 % Neither is the old chunk saved, nor is a new chunk-constraint with corresponding slots created!
 
 
-:- chr_constraint write_to_dm(+chunk_def).
+:- chr_constraint write_to_dm(+).
 % write_to_dm(+Chunk)
 % Writes the chunk Chunk to declarative memory.
 % The module which acts as declarative memory is defined by declarative_module/1.
@@ -66,13 +66,12 @@ buffer(BufName, _, _) \ add_buffer(BufName, _) <=> false. % buffers must have di
 add_buffer(BufName, ModName) <=> buffer(BufName, ModName, nil). % create empty buffer
 
 % Handle buffer_request
-buffer_request(BufName, Chunk), buffer(BufName, ModName, _) <=> ModName:module_request(BufName, Chunk, ResChunk), buffer(BufName, ModName, ResChunk).
+buffer_request(BufName, Chunk), buffer(BufName, ModName, _) <=> ModName:module_request(BufName, Chunk, ResChunk), ResChunk=chunk(ResChunkName,_,_), add_chunk(ResChunk), buffer(BufName, ModName, ResChunkName).
 
 % Handle buffer_change
-buffer_change(BufName, NewChunk), buffer(BufName, _, OldChunk) <=> 
-  write_to_dm(OldChunk),
-  add_chunk(NewChunk),
-  set_buffer(BufName, NewChunk).
+buffer(BufName, _, OldChunk) \ buffer_change(BufName, chunk(_,_,SVs)) <=>
+  alter_slots(OldChunk,SVs).
+
   
 set_buffer(BufName, nil), buffer(BufName, ModName, _)  <=> 
   buffer(BufName, ModName, nil).

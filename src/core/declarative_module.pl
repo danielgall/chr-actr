@@ -1,5 +1,5 @@
 % Implements interface "module"
-:- module(declarative_module, [module_request/3]).
+:- module(declarative_module, []).
 :- use_module(library(chr)).
 
 :- include('chunk_management.pl').
@@ -53,7 +53,7 @@ add_dm(ChunkDef) <=> add_chunk(ChunkDef).
 
 module_request(retrieval,Chunk,ResChunk) <=> find_chunk(Chunk,ResChunk).
 
-chunk(ChunkName, ChunkType) \ find_chunk(chunk(Name,Type,Slots), ResChunk) <=> Name=ChunkName,Type=ChunkType,check_slots(ChunkName, Slots), return_chunk(ChunkName,ResChunk).
+chunk(Name, Type) \ find_chunk(chunk(Name,Type,Slots), ResChunk) <=> check_slots(ChunkName, Slots), return_chunk(ChunkName,ResChunk).
 %chunk(ChunkName, ChunkType) \ find_chunk(chunk(Name,Type,Slots), ResChunk) <=> Name==ChunkName, Type==ChunkType | check_slots(ChunkName, Slots), return_chunk(ChunkName,ResChunk).
 
 check_slots(_, []) <=> true.

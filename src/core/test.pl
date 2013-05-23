@@ -2,8 +2,9 @@
 
 :- chr_constraint run/0, output/1.
 run <=> 
+  init,
   add_buffer(retrieval,declarative_module),
-  add_buffer(goal,_),
+  %add_buffer(goal,_),
   add_chunk_type(countorder, [first, second]),
   add_chunk_type(countfrom, [start,end,count]),
   add_dm(chunk(b, countorder, [(first,1),(second,2)])),
@@ -20,9 +21,8 @@ start @
     chunk_has_slot(A,start,B),
     chunk_has_slot(A,count,nil)
 ==> true|
-  %buffer_change(goal,chunk(C,D,[ (count,B)])),
-  %buffer_request(retrieval,chunk(E,countorder,[ (first,B)])).
-  write('YEAAAAH').
+  buffer_change(goal,chunk(C,D,[ (count,B)])),
+  buffer_request(retrieval,chunk(E,countorder,[ (first,B)])).
   
 increment@
   buffer(goal,_,A),
