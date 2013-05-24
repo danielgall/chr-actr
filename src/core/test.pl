@@ -1,6 +1,6 @@
 :- include('actr_core.pl').
 
-:- chr_constraint run/0, output/1.
+:- chr_constraint run/0, output/1,fire/0.
 run <=> 
   init,
   add_buffer(retrieval,declarative_module),
@@ -13,16 +13,16 @@ run <=>
   add_dm(chunk(e, countorder, [(first,4),(second,5)])),
   add_dm(chunk(f, countorder, [(first,5),(second,6)])),
   add_dm(chunk(first-goal, countfrom, [(start,2),(end,4),(count,nil)])),
-  goal_focus(first-goal).
+  goal_focus(first-goal), fire.
 
 start @ 
   buffer(goal,_,A),
     chunk(A,countfrom),
     chunk_has_slot(A,start,B),
-    chunk_has_slot(A,count,nil)
-==> true|
+    chunk_has_slot(A,count,nil) \ fire
+<=> true|
   buffer_change(goal,chunk(C,D,[ (count,B)])),
-  buffer_request(retrieval,chunk(E,countorder,[ (first,B)])).
+  buffer_request(retrieval,chunk(E,countorder,[ (first,B)])),fire.
   
 increment@
   buffer(goal,_,A),
@@ -32,15 +32,13 @@ increment@
   buffer(retrieval,_,D),
     chunk(D,countorder),
     chunk_has_slot(D,first,B),
-    chunk_has_slot(D,second,E)
-==>C\==B|
+    chunk_has_slot(D,second,E) \ fire
+<=>C\==B|
   buffer_change(goal,chunk(F,G,[ (count,E)])),
   buffer_request(retrieval,chunk(H,countorder,[ (first,E)])),
-  output(B).
+  output(B),fire.
 
 stop@
 buffer(goal,_,A),
-chunk(A,countfrom),chunk_has_slot(A,count,B),chunk_has_slot(A,end,B)==>
-true|buffer_clear(goal),output(B).
-
-output(X) <=> write('AAAAAAAAAAAAAAAAAAAAAA'),write(X).
+chunk(A,countfrom),chunk_has_slot(A,count,B),chunk_has_slot(A,end,B) \ fire<=>
+true|buffer_clear(goal),output(B),fire.

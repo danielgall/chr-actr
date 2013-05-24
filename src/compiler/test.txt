@@ -1,20 +1,41 @@
-(p name 
-	=goal>
-	  isa xnedder
-	  slot =num1
-	=retrieval> 
-		slot1 val1 
-		slot2 =num1
-==> 
-	+retrieval> 
-		slot1 =num1
-		slot2 test
-		slot3 =num4
-	+goal>
-	  goalslot	val
-	  gs1	=num4
-	=xnedder>
-	  bla blub
-	  foo =num1
-	  bar =num4)
+(p start
+   =goal>
+      ISA         count-from
+      start       =num1
+      count       nil
+ ==>
+   =goal>
+      count       =num1
+   +retrieval>
+      ISA         count-order
+      first       =num1
+)
 
+(p increment
+   =goal>
+      ISA         count-from
+      count       =num1
+    - end         =num1
+   =retrieval>
+      ISA         count-order
+      first       =num1
+      second      =num2
+ ==>
+   =goal>
+      count       =num2
+   +retrieval>
+      ISA         count-order
+      first       =num2
+   !output!       (=num1)
+)
+
+(p stop
+   =goal>
+      ISA         count-from
+      count       =num
+      end         =num
+ ==>
+   -goal>
+   !output!       (=num)
+
+)

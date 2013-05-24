@@ -5,7 +5,7 @@
 :- use_module('test_module.pl').
 :- include('buffers.pl').
 
-:- chr_constraint add_dm/1, goal_focus/1, init/0.
+:- chr_constraint add_dm/1, goal_focus/1, init/0, output/1.
 
 add_dm(C) <=> declarative_module:add_chunk(C).
 
@@ -17,4 +17,6 @@ goal_focus(Chunk) <=>
   
 init <=>
     declarative_module(declarative_module).
+    
+output(X) <=> write(X),nl.
   
