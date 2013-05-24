@@ -1,6 +1,6 @@
 :- include('actr_core.pl').
 
-:- chr_constraint run/0, output/1,fire/0.
+:- chr_constraint run/0, fire/0.
 run <=> 
   init,
   add_buffer(retrieval,declarative_module),
