@@ -1,5 +1,5 @@
 % Implements interface "module"
-:- module(declarative_module, []).
+:- module(declarative_module, [add_dm/1]).
 :- use_module(library(chr)).
 
 :- include('chunk_management.pl').
