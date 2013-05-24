@@ -15,6 +15,7 @@ readAll(S,[C|Cs]) :-
 compile_file(F) :-
   open(F,read,S),
   readAll(S,Cs),
+  close(S),
   getTokens(Cs,T),!,
   nl, nl,
   write(T),
@@ -25,7 +26,7 @@ compile_file(F) :-
   nl,nl,
   chr_headers,
   compile_structure(Structure), !,
-  close(S).
+  file(end).
 
 
 compile_structure(s(S)) <=> compile_structure(S).
@@ -37,9 +38,10 @@ compile_structure(s(S, Ss)) <=> compile_structure(S), compile_structure(Ss).
 
 compile_structure(production_rule(production_name(Name), LHS, RHS)) <=> 
   compile_structure2_lhs(LHS, Head, Guard), 
-  compile_structure2(RHS, Body),
+  compile_structure2(RHS, ResRHS),
   end_of_block,
-  chrl(Name, Head,[],Guard,Body).
+  append(ResRHS,[fire],Body),
+  chrl(Name, Head,[fire],Guard,Body).
 
 % LHS
 %%  
