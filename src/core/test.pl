@@ -4,7 +4,7 @@
 run <=> 
   init,
   add_buffer(retrieval,declarative_module),
-  %add_buffer(goal,_),
+  add_buffer(goal,declarative_module),
   add_chunk_type(countorder, [first, second]),
   add_chunk_type(countfrom, [start,end,count]),
   add_dm(chunk(b, countorder, [(first,1),(second,2)])),

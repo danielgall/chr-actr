@@ -89,3 +89,7 @@ chunk(ChunkName, ChunkType) \ return_chunk(ChunkName,Res) <=> var(Res) | build_c
 
 chunk_has_slot(ChunkName, S, V) \ build_chunk_list(chunk(ChunkName, ChunkType, L), Res) <=> \+member((S,V),L) | build_chunk_list(chunk(ChunkName, ChunkType, [(S,V)|L]),Res).
 build_chunk_list(X,Res) <=> Res=X.
+
+name(chunk(Name,_,_),Name).
+type(chunk(_,Type,_), Type).
+slots(chunk(_,_,Slots),Slots).
