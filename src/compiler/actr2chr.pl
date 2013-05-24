@@ -245,15 +245,6 @@ list2goal([X|Xs],G) <=> G=(X,Gs),
 % If constraint file is in store: Output to file.
 %
 
-% simplification  
-console \ chr(N,K,R,G,B) <=> K == true | write(N @ R<=>G|B), write('.\n').
-
-% propagation  
-console \ chr(N,K,R,G,B) <=> R == true | write(N @ K==>G|B), write('.\n').
-
-% simpagation
-console \ chr(N,K,R,G,B) <=> K \== true, R \== true | write(N @ K\R<=>G|B), write('.\n').
-
 % Output to some stream (eg. a file)
 
 % simplification  
@@ -280,8 +271,11 @@ file(append) <=>
 file(read) <=>
   open('out.pl', read, S),
   stream(S, read).
-  
+    
 file(end), stream(S,write) <=> close(S).
+
+console <=>
+  stream(user_output, write).
 
 %
 %% File Input (not used)
