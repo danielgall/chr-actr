@@ -2,7 +2,7 @@
 :- use_module(tokenizer).
 :- use_module(parser).
 
-:- chr_constraint spypoint/0, chr/5,chrl/5, list2goal/2, file/1, stream/2, console/0, line/1,compile_structure/1,compile_structure2/2,compile_structure2_lhs/3,compile_structure3/3,compile_structure3_lhs/4,symbol_table/2, end_of_block/0.
+:- chr_constraint chr_headers/0, chr/5,chrl/5, list2goal/2, file/1, stream/2, console/0, line/1,compile_structure/1,compile_structure2/2,compile_structure2_lhs/3,compile_structure3/3,compile_structure3_lhs/4,symbol_table/2, end_of_block/0.
 
 readAll(S, []) :-
   at_end_of_stream(S).
@@ -23,6 +23,7 @@ compile_file(F) :-
   write(Structure),
   console,
   nl,nl,
+  chr_headers,
   compile_structure(Structure), !,
   close(S).
 
@@ -255,6 +256,15 @@ stream(S, write) \ chr(N, K,R,G,B) <=> R == true | write(S, N @ K==>G|B), write(
 
 % simpagation
 stream(S, write) \ chr(N, K,R,G,B) <=> K \== true, R \== true | write(S, N @ K\R<=>G|B), write(S, '.\n').
+
+
+%headers
+stream(S, write) \ chr_headers <=>
+  write(S, ':- include(\'actr_core.pl\').\n'),
+  write(S, ':- chr_constraint run/0, fire/0.\n'),
+  write(S, '\n\n'),
+  write(S, 'run <=> /* add code here */\n'),
+  write(S, '\n\n').
 
 %
 % File I/O handling
