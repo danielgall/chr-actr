@@ -37,10 +37,16 @@
 :- chr_constraint find_chunk(?,?,?).
 %find_chunk(Name,Type,Slots)
 
+:- chr_constraint test_slots(+,+slot_list).
+%test_slots(ChunkName,Slots)
+%tests if chunk with name ChunkName matches all the slots in Slots for every chunk in match_set.
+%If a slot does not match, the chunk is removed from match set.
+%Matching means: for every pair (S,V) in Slots, the chunk must have a corresponding 
+
 :- chr_constraint collect_matches(-).
 % collects all the elements in a match_set constraint
 
-:- chr_constraint test_slots(+,+slot_list).
+
 
 :- chr_constraint match_set(+list(any)).
 
