@@ -12,7 +12,10 @@
 add_q(Time,Evt) <=>
   s --> q(Time,Evt).
 
-A --> A <=> true.
+ 
+A --> A <=> A \== s | true.
+
+_ --> s <=> false.
 
 A --> B, A --> C <=>
   leq(B,C) |
@@ -29,6 +32,4 @@ de_q(X), s --> A, A --> B <=>
   s --> B.
 
 de_q(X), s --> A <=>
-  X = A.
-  
-  
+  X = A.  
