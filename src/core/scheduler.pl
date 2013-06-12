@@ -33,3 +33,5 @@ de_q(X), s --> A, A --> B <=>
 
 de_q(X), s --> A <=>
   X = A.  
+  
+de_q(X) <=> X = nil.

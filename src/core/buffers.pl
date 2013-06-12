@@ -61,15 +61,23 @@
 % Rules %
 %%%%%%%%%
 
+:- chr_constraint now/1, do_buffer_request/2,do_buffer_change/2,do_buffer_clear/1.
+
 % Handle add_buffer
 buffer(BufName, _, _) \ add_buffer(BufName, _) <=> false. % buffers must have distinct names
 add_buffer(BufName, ModName) <=> buffer(BufName, ModName, nil). % create empty buffer
 
+% Schedule buffer_request
+now(Now) \ buffer_request(BufName, Chunk) <=> Time is Now + 1, add_q(Time, do_buffer_request(BufName, Chunk)).
+
 % Handle buffer_request
-buffer_request(BufName, Chunk), buffer(BufName, ModName, _) <=> ModName:module_request(BufName, Chunk, ResChunk), ResChunk=chunk(ResChunkName,_,_), add_chunk(ResChunk), buffer(BufName, ModName, ResChunkName).
+do_buffer_request(BufName, Chunk), buffer(BufName, ModName, _) <=> ModName:module_request(BufName, Chunk, ResChunk), ResChunk=chunk(ResChunkName,_,_), add_chunk(ResChunk), buffer(BufName, ModName, ResChunkName).
+
+% Schedule buffer_request
+now(Now) \ buffer_change(BufName, Chunk) <=> Time is Now + 1, add_q(Time, do_buffer_change(BufName, Chunk)).
 
 % Handle buffer_change
-buffer(BufName, _, OldChunk) \ buffer_change(BufName, chunk(_,_,SVs)) <=>
+buffer(BufName, _, OldChunk) \ do_buffer_change(BufName, chunk(_,_,SVs)) <=>
   alter_slots(OldChunk,SVs).
 
   
@@ -80,8 +88,11 @@ set_buffer(BufName, chunk(ChunkName, _, _)), buffer(BufName, ModName, _) <=>
   buffer(BufName, ModName, ChunkName).
   
 
+% Schedule buffer_clear
+now(Now) \ buffer_clear(BufName) <=> Time is Now + 1, add_q(Time, do_buffer_clear(BufName)).  
+  
 % Handle buffer_clear
-buffer_clear(BufName), buffer(BufName, ModName, Chunk) <=> write_to_dm(Chunk), buffer(BufName, ModName, nil).
+do_buffer_clear(BufName), buffer(BufName, ModName, Chunk) <=> write_to_dm(Chunk), buffer(BufName, ModName, nil).
 
 % Handle write_to_dm
 declarative_module(DM) \ write_to_dm(ChunkName) <=> return_chunk(ChunkName, ResChunk), DM:add_dm(ResChunk).
