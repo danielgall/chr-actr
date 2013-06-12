@@ -44,10 +44,13 @@ compile_structure2([X|Xs],Res) <=>
   append(Init,Inits,Res).
 
 compile_structure2(lisp_function(FName,FArgs),Init) <=> 
-  atom_concat(lisp_,FName,F),
+  atom_chars(FName,Chars),
+  delete(Chars,-,CharsR),
+  atom_chars(FNameR,CharsR),
+  atom_concat(lisp_,FNameR,F),
   I =.. [F|[FArgs]],
   Init = [I].
-
+  
 compile_structure2(production_rule(N,L,R),Inits) <=>
   compile_structure(production_rule(N,L,R)),
   Inits = [].
