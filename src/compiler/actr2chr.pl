@@ -29,9 +29,25 @@ compile_file(F) :-
   file(end).
 
 
-compile_structure(s(S)) <=> compile_structure(S).
-compile_structure(s(S, Ss)) <=> compile_structure(S), compile_structure(Ss).
+compile_structure(model(ModelName,Functions)) <=> 
+  compile_structure2(Functions,Inits),
+  chrl(init,[],[run],[],Inits).
+  
+compile_structure2([],Inits) <=> Inits=[].
+compile_structure2([X|Xs],Res) <=>
+  compile_structure2(X,Init),
+  compile_structure2(Xs,Inits),
+  append(Init,Inits,Res).
 
+compile_structure2(lisp_function(FName,FArgs),Init) <=> 
+  atom_concat(lisp_,FName,F),
+  I =.. [F|[FArgs]],
+  Init = [I].
+
+compile_structure2(production_rule(N,L,R),Inits) <=>
+  compile_structure(production_rule(N,L,R)),
+  Inits = [].
+  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Production rule compilation %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

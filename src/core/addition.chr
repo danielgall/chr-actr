@@ -1,0 +1,85 @@
+:- include('actr_core.pl').
+
+:- chr_constraint run/0, fire/0,nextcyc/0.
+run <=> 
+  init,
+  add_buffer(retrieval,declarative_module),
+  add_buffer(goal,declarative_module),
+  add_chunk_type(count-order, [first, second]),
+  add_chunk_type(count-from, [start,end,count]),
+  add_chunk_type(add, [arg1, arg2, sum, count]),
+  add_dm(chunk(a, count-order, [(first,0),(second,1)])),
+  add_dm(chunk(b, count-order, [(first,1),(second,2)])),
+  add_dm(chunk(c, count-order, [(first,2),(second,3)])),
+  add_dm(chunk(d, count-order, [(first,3),(second,4)])),
+  add_dm(chunk(e, count-order, [(first,4),(second,5)])),
+  add_dm(chunk(f, count-order, [(first,5),(second,6)])),
+  add_dm(chunk(g, count-order, [(first,6),(second,7)])),
+  add_dm(chunk(h, count-order, [(first,7),(second,8)])),
+  add_dm(chunk(i, count-order, [(first,8),(second,9)])),
+  add_dm(chunk(j, count-order, [(first,9),(second,10)])),
+  add_dm(chunk(second-goal, add, [(arg1,5),(arg2,2),(sum,nil),(count,nil)])),
+  goal_focus(second-goal), now(0), fire.
+
+  
+chunk_has_slot(second-goal,sum,V) ==> write('second-goal,sum,'),write(V),nl.  
+  
+initialize-addition @ 
+ buffer(goal,_,A),
+   chunk(A,add),
+     chunk_has_slot(A,arg1,B),
+     chunk_has_slot(A,arg2,C),
+     chunk_has_slot(A,sum,nil)
+ \ fire
+<=>
+  true|
+  buffer_change(goal,chunk(D,E,[ (sum,B), (count,0)])),
+  buffer_request(retrieval,chunk(F,count-order,[ (first,B)])),
+  nextcyc.
+  
+terminate-addition @ 
+  buffer(goal,_,A),
+    chunk(A,add),
+      chunk_has_slot(A,count,B),
+      chunk_has_slot(A,arg2,B),
+      chunk_has_slot(A,sum,C)
+  \ fire
+<=>
+  true|
+  write('teminate'),nl,
+  buffer_change(goal,chunk(D,E,[ (count,nil)])),
+  nextcyc.
+  
+increment-count @
+  buffer(goal,_,A),
+    chunk(A,add),
+    chunk_has_slot(A,sum,B),
+      chunk_has_slot(A,count,C),
+  buffer(retrieval,_,D),
+    chunk(D,count-order),
+      chunk_has_slot(D,first,C),
+        chunk_has_slot(D,second,E)
+    \ fire
+<=>
+  true|
+  buffer_change(goal,chunk(F,G,[ (count,E)])),
+  buffer_request(retrieval,chunk(H,count-order,[ (first,B)])),
+  nextcyc.
+  
+increment-sum @ 
+  buffer(goal,_,A),
+  chunk(A,add),
+  chunk_has_slot(A,sum,B),
+  chunk_has_slot(A,count,C),
+  chunk_has_slot(A,arg2,D),
+  buffer(retrieval,_,E),
+  chunk(E,count-order),
+  chunk_has_slot(E,first,B),
+  chunk_has_slot(E,second,F)
+  \ fire
+<=>
+  D\==C,C\==nil|
+  write('increment sum: goal: '),write(A:sum:B:count:C:arg2:D),nl,
+  buffer_change(goal,chunk(G,H,[ (sum,F)])),
+  buffer_request(retrieval,chunk(I,count-order,[ (first,C)])),
+  nextcyc.

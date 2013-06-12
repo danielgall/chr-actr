@@ -22,9 +22,32 @@
 % identifier -> // everything that is not '=', '>', '+', '-' or '!' (which means: a reserved word).
 %
 
-s(s(P)) --> production_rule(P).
-s(s(P, Ss)) --> production_rule(P), s(Ss).
-production_rule(production_rule(Name, LHS, RHS)) --> ['('], [p], production_name(Name), lhs(LHS), [==>], rhs(RHS), [')'].
+s(model(ModelName,Rs)) --> ['(', 'define-model', ModelName ],!, rules(Rs), [')'].
+
+rules([F]) --> production_rule(F).
+rules([F|Fs]) --> production_rule(F), rules(Fs).
+
+rules([R]) --> lisp_function(R).
+rules([R|Rs]) --> lisp_function(R), rules(Rs).
+
+%s(s(P)) --> production_rule(P).
+%s(s(P, Ss)) --> production_rule(P), s(Ss).
+
+
+production_rule(production_rule(Name, LHS, RHS)) --> ['('], [p],!, production_name(Name), lhs(LHS), [==>], rhs(RHS), [')'].
+
+lisp_function(lisp_function(FName, FArgs)) --> ['(', FName], arguments(FArgs), [')'], { identifier(FName) }.
+
+arguments([A]) -->  ['(' ],list(A),[')'].
+arguments(FArgs) --> ['(' ],list(A),[')'],!,arguments(As), { FArgs = [A|As] }.
+arguments([A]) --> [A], { identifier(A) }.
+arguments([A|As]) --> [A], arguments(As), { identifier(A) }.
+%arguments(FArgs) --> ['(' ], [A], arguments(As), [')'], { identifier(A), append(A,As,FArgs) }.
+
+list([X|Xs]) --> [X], list(Xs), {identifier(X)}.
+list([X]) --> [X], {identifier(X)}.
+%list([]) --> [].
+
 
 production_name(production_name(ProductionName)) --> [ProductionName], { identifier(ProductionName) }.
 

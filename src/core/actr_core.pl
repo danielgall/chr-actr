@@ -5,8 +5,9 @@
 :- use_module('declarative_module.pl').
 :- use_module('test_module.pl').
 :- include('buffers.pl').
+:- include('std_lisp.pl').
 
-:- chr_constraint goal_focus/1, init/0, output/1, do_output/1.
+:- chr_constraint goal_focus/1, init/0, output/1, do_output/1, nextcyc/0.
 
 goal_focus(Chunk) <=>
   declarative_module:module_request(goal,chunk(Chunk,_,_),ResChunk),
