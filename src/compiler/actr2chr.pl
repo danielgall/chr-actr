@@ -233,7 +233,7 @@ chrl(N,KL,RL,GL,BL) <=>
   list2goal(RL,R),
   list2goal(GL,G),
   list2goal(BL,B),
-  numbervars((K,R,G,B)), % pretty print variables
+  numbervars((K,R,G,B),0,_,[singletons(true)]), % pretty print variables
   chr(N,K,R,G,B).
 
 % takes a list and transforms it to a goal
