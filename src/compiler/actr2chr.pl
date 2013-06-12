@@ -60,7 +60,7 @@ compile_structure(production_rule(production_name(Name), LHS, RHS)) <=>
   compile_structure2_lhs(LHS, Head, Guard), 
   compile_structure2(RHS, ResRHS),
   end_of_block,
-  append(ResRHS,[fire],Body),
+  append(ResRHS,[nextcyc],Body),
   chrl(Name, Head,[fire],Guard,Body).
 
 % LHS
