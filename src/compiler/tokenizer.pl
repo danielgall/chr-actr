@@ -39,9 +39,20 @@ getToken(letters,R,R,S,W) :-
   reverse(S,S1),
   atom_chars(W,S1).
   
-% TODO
-% Handle Numbers
 %
+% Handle numbers
+%
+getToken(start, [X|Xs],Rest,T) :-
+  digit(X), 
+  getToken(digits, Xs,Rest,[X],T). % find rest of word
+  
+getToken(digits, [C|R],Rest,S,T) :-
+  digit(C), 
+  getToken(letters,R,Rest,[C|S],T).
+  
+getToken(digits,R,R,S,W) :-
+  reverse(S,S1),
+  atom_chars(W,S1).
 
 %
 % Basic facts
