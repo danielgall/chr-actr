@@ -31,7 +31,11 @@ compile_file(F) :-
 
 compile_structure(model(ModelName,Functions)) <=> 
   compile_structure2(Functions,Inits),
-  chrl(init,[],[run],[],Inits).
+  Header = [add_buffer(retrieval,declarative_module), add_buffer(goal,declarative_module)],
+  Footer = [now(0),fire],
+  append(Header,Inits,L),
+  append(L,Footer,ResInits),
+  chrl(init,[],[run],[],ResInits).
   
 compile_structure2([],Inits) <=> Inits=[].
 compile_structure2([X|Xs],Res) <=>
