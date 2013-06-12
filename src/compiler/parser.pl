@@ -64,8 +64,12 @@ buffer_operations(buffer_operations(BufferChange, Next)) --> buffer_change(Buffe
 buffer_operations(buffer_operations(BufferRequest, Next)) --> buffer_request(BufferRequest), buffer_operations(Next).
 buffer_operations(buffer_operations(BufferClear, Next)) --> buffer_request(BufferClear), buffer_operations(Next).
 
-buffer_change(buffer_change(Buffer, SlotRHSs)) --> [=], buffer(Buffer), [>], slot_rhss(SlotRHSs).
-buffer_request(buffer_request(Buffer, SlotRHSs)) --> [+], buffer(Buffer), [>], slot_rhss(SlotRHSs).
+buffer_change(buffer_change(Buffer, ChunkType, SlotRHSs)) --> [=], buffer(Buffer), [>, isa, ChunkType], slot_rhss(SlotRHSs), { identifier(ChunkType) }.
+buffer_change(buffer_change(Buffer, _, SlotRHSs)) --> [=], buffer(Buffer), [>], slot_rhss(SlotRHSs).
+
+buffer_request(buffer_request(Buffer, ChunkType, SlotRHSs)) --> [+], buffer(Buffer), [>, isa, ChunkType], slot_rhss(SlotRHSs), { identifier(ChunkType) }.
+buffer_request(buffer_request(Buffer, _, SlotRHSs)) --> [+], buffer(Buffer), [>], slot_rhss(SlotRHSs).
+
 buffer_clear(buffer_clear(Buffer)) --> [-], buffer(Buffer), [>].
 buffer_clear(buffer_clear(Buffer, FunctionCalls)) --> [-], buffer(Buffer), [>], function_calls(FunctionCalls).
 

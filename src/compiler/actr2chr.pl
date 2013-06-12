@@ -15,7 +15,7 @@ readAll(S,[C|Cs]) :-
 compile_file(F) :-
   open(F,read,S),
   readAll(S,Cs),
-  close(S),
+  close(S),!,
   getTokens(Cs,T),!,
   nl, nl,
   write(T),
@@ -133,13 +133,13 @@ compile_structure2(buffer_operations(BufOp, Next),R) <=>
   compile_structure2(Next, RNext),
   append(RBufOp,RNext,R).
   
-compile_structure2(buffer_request(buffer(Buffer), SlotRequests),R) <=>
+compile_structure2(buffer_request(buffer(Buffer), ChunkType, SlotRequests),R) <=>
   compile_structure3(SlotRequests,RSlots,RFuncCalls),
-  append([buffer_request(Buffer, chunk(_,_,RSlots))],RFuncCalls,R).
+  append([buffer_request(Buffer, chunk(_,ChunkType,RSlots))],RFuncCalls,R).
   
-compile_structure2(buffer_change(buffer(Buffer), SlotChanges),R) <=>
+compile_structure2(buffer_change(buffer(Buffer), ChunkType, SlotChanges),R) <=>
   compile_structure3(SlotChanges,RSlots,RFuncCalls),
-  append([buffer_change(Buffer, chunk(_,_,RSlots))],RFuncCalls,R).
+  append([buffer_change(Buffer, chunk(_,ChunkType,RSlots))],RFuncCalls,R).
   
   
  
@@ -293,8 +293,8 @@ console <=>
 %% File Input (not used)
 %%
 
-stream(S, read) <=> at_end_of_stream(S) | true.
-stream(S, read) <=> \+at_end_of_stream(S) | read(S,L), line(L), stream(S,read).
+%stream(S, read) <=> at_end_of_stream(S) | true.
+%stream(S, read) <=> \+at_end_of_stream(S) | read(S,L), line(L), stream(S,read).
 
-line(X) <=> write(X), nl.
+%line(X) <=> write(X), nl.
 
