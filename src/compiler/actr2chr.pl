@@ -287,8 +287,6 @@ stream(S, write) \ chr(N, K,R,G,B) <=> K \== true, R \== true | write(S, N @ K\R
 stream(S, write) \ chr_headers <=>
   write(S, ':- include(\'actr_core.pl\').\n'),
   write(S, ':- chr_constraint run/0, fire/0.\n'),
-  write(S, '\n\n'),
-  write(S, 'run <=> /* add code here */\n'),
   write(S, '\n\n').
 
 %
