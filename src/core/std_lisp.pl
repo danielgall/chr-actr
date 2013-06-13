@@ -2,7 +2,8 @@
 :- chr_constraint lisp_chunktype/1,lisp_adddm/1,lisp_goalfocus/1.
 
 lisp_chunktype([Type|Slots]) <=>
-  add_chunk_type(Type,Slots).
+  add_chunk_type(Type,Slots),
+  declarative_module:add_chunk_type(Type,Slots).
   
 lisp_adddm([]) <=> true.
   

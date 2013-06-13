@@ -56,6 +56,8 @@
 
 :- chr_constraint build_chunk_list(+chunk_def,-chunk_def).
 
+:- chr_constraint do_add_chunk(+chunk_def).
+
 %%%%%%%%%
 % Rules %
 %%%%%%%%%
@@ -64,8 +66,15 @@ add_chunk_type(CT, []) <=> chunk_type(CT).
 add_chunk_type(CT, [S|Ss]) <=> chunk_type_has_slot(CT, S), add_chunk_type(CT, Ss).
 
 add_chunk(nil) <=> true.
-add_chunk(chunk(Name, Type, [])) <=> chunk(Name, Type).
-add_chunk(chunk(Name, Type, [(S,V)|Rest]))  <=> chunk_has_slot(Name, S,V), add_chunk(chunk(Name,Type,Rest)).
+% initialize all slots with nil
+add_chunk(chunk(Name,Type, _)), chunk_type_has_slot(Type,S) ==> 
+  chunk_has_slot(Name,S,nil).
+
+add_chunk(chunk(Name,Type, Slots)) <=>
+  do_add_chunk(chunk(Name,Type,Slots)).
+
+do_add_chunk(chunk(Name, Type, [])) <=> chunk(Name, Type).
+do_add_chunk(chunk(Name, Type, [(S,V)|Rest])), chunk_has_slot(Name,S,nil)  <=> chunk_has_slot(Name, S,V), do_add_chunk(chunk(Name,Type,Rest)).
 
 add_chunks([]) <=> true.
 add_chunks([C|Cs]) <=> add_chunk(C), add_chunks(Cs).
