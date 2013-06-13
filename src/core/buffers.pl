@@ -68,12 +68,19 @@ buffer(BufName, _, _) \ add_buffer(BufName, _) <=> false. % buffers must have di
 add_buffer(BufName, ModName) <=> buffer(BufName, ModName, nil). % create empty buffer
 
 % Schedule buffer_request
-now(Now) \ buffer_request(BufName, Chunk) <=> Time is Now + 1, add_q(Time, do_buffer_request(BufName, Chunk)).
+now(Now) \ buffer_request(BufName, Chunk) <=> 
+  do_buffer_clear(BufName), % clear buffer immediately
+  Time is Now + 1, 
+  add_q(Time, do_buffer_request(BufName, Chunk)).
 
 % Handle buffer_request
-do_buffer_request(BufName, Chunk), buffer(BufName, ModName, _) <=> ModName:module_request(BufName, Chunk, ResChunk), ResChunk=chunk(ResChunkName,_,_), add_chunk(ResChunk), buffer(BufName, ModName, ResChunkName).
+do_buffer_request(BufName, Chunk), buffer(BufName, ModName, _) <=> 
+  ModName:module_request(BufName, Chunk, ResChunk), 
+  ResChunk=chunk(ResChunkName,_,_), 
+  add_chunk(ResChunk), 
+  buffer(BufName, ModName, ResChunkName).
 
-% Schedule buffer_request
+% Schedule buffer_change
 now(Now) \ buffer_change(BufName, Chunk) <=> Time is Now + 1, add_q(Time, do_buffer_change(BufName, Chunk)).
 
 % Handle buffer_change
@@ -92,7 +99,7 @@ set_buffer(BufName, chunk(ChunkName, _, _)), buffer(BufName, ModName, _) <=>
 now(Now) \ buffer_clear(BufName) <=> Time is Now + 1, add_q(Time, do_buffer_clear(BufName)).  
   
 % Handle buffer_clear
-do_buffer_clear(BufName), buffer(BufName, ModName, Chunk) <=> write_to_dm(Chunk), buffer(BufName, ModName, nil).
+do_buffer_clear(BufName), buffer(BufName, ModName, Chunk) <=> write('clear buffer '),write(BufName),nl, write_to_dm(Chunk), buffer(BufName, ModName, nil).
 
 % Handle write_to_dm
 declarative_module(DM) \ write_to_dm(ChunkName) <=> return_chunk(ChunkName, ResChunk), DM:add_dm(ResChunk).
