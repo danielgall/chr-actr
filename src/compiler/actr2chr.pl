@@ -114,12 +114,12 @@ compile_structure3_lhs(slot_test(slot_value_pair(slot(S),value(V))), Chunk, R,Gu
 % returns: a list containing this one slot_test in form of a chunk_has_slot constraint  
 symbol_table(V, Var) \ compile_structure3_lhs(slot_test(slot_variable_pair(slot(S),variable(V))), Chunk, R, Guard) <=>
   R = [chunk_has_slot(Chunk,S,Var)],
-  Guard = [].
+  Guard = [Var \== nil].
   
 compile_structure3_lhs(slot_test(slot_variable_pair(slot(S),variable(V))), Chunk, R, Guard) <=>
   symbol_table(V, Var),
   R = [chunk_has_slot(Chunk,S,Var)],
-  Guard = [].
+  Guard = [Var \== nil].
 
 % negated slot tests
 %
