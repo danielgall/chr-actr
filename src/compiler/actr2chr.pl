@@ -26,13 +26,14 @@ compile_file(F) :-
   nl,nl,
   chr_headers,
   compile_structure(Structure), !,
+  footers,
   file(end).
 
 
 compile_structure(model(ModelName,Functions)) <=> 
   compile_structure2(Functions,Inits),
   Header = [add_buffer(retrieval,declarative_module), add_buffer(goal,declarative_module)],
-  Footer = [now(0),fire],
+  Footer = [now(0),conflict_resolution,nextcyc],
   append(Header,Inits,L),
   append(L,Footer,ResInits),
   chrl(init,[],[run],[],ResInits).
@@ -63,7 +64,7 @@ compile_structure(production_rule(production_name(Name), LHS, RHS)) <=>
   compile_structure2_lhs(LHS, Head, Guard), 
   compile_structure2(RHS, ResRHS),
   end_of_block,
-  append(ResRHS,[nextcyc],Body),
+  append(ResRHS,[conflict_resolution],Body),
   chrl(Name, Head,[fire],Guard,Body).
 
 % LHS
@@ -252,6 +253,9 @@ compile_structure2(slot_rhs(slot_variable_pair(slot(S),variable(V))),R) <=>
   R = [(S,Var)].
    
 
+footers :-
+  chrl(no-rule,[],[fire],[],[no_rule]).
+   
   
 %
 % at end of block (which means at the end of the definition of this ACT-R production rule): 

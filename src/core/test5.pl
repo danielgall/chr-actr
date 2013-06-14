@@ -8,4 +8,4 @@ stop@buffer(goal,_,A),chunk(A,count-from),chunk_has_slot(A,count,B),chunk_has_sl
 init@run<=>true|add_buffer(retrieval,declarative_module),add_buffer(goal,declarative_module),lisp_chunktype([count-order,first,second]),lisp_chunktype([count-from,start,end,count]),lisp_adddm([[b,isa,count-order,first,1,second,2],[c,isa,count-order,first,2,second,3],[d,isa,count-order,first,3,second,4],[e,isa,count-order,first,4,second,5],[f,isa,count-order,first,5,second,6],[first-goal,isa,count-from,start,2,end,4]]),lisp_goalfocus([first-goal]),
 now(0),conflict_resolution,nextcyc.
 
-fire <=> write('No rule matches -> Schedule next conflict resolution event'),nl,after_next_event(do_conflict_resolution).
+fire <=> no_rule.

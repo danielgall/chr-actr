@@ -7,7 +7,7 @@
 :- include('buffers.pl').
 :- include('std_lisp.pl').
 
-:- chr_constraint goal_focus/1, init/0, output/1, do_output/1, nextcyc/0, conflict_resolution/0, do_conflict_resolution/0.
+:- chr_constraint goal_focus/1, init/0, output/1, do_output/1, nextcyc/0, conflict_resolution/0, do_conflict_resolution/0, no_rule/0.
 
 goal_focus(Chunk) <=>
   declarative_module:module_request(goal,chunk(Chunk,_,_),ResChunk,ResState,_),
@@ -35,5 +35,8 @@ call_event(q(Time,Priority,Evt)), now(Now) <=> Now =< Time | write(Now:Time:Prio
 now(Time) \ conflict_resolution <=> add_q(Time,0,do_conflict_resolution),write('q: '),print_q(s),nl.
 
 do_conflict_resolution <=> fire.%TODO add proper conflict resolution mechanism
+
+% no rule matched
+no_rule <=> write('No rule matches -> Schedule next conflict resolution event'),nl,after_next_event(do_conflict_resolution).
 
   
