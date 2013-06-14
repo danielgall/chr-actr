@@ -1,7 +1,7 @@
 :- module(chr_actr,[]).
 :- use_module(library(chr)).
 
-:- include('scheduler.pl').
+:- use_module('priority_queue.pl').
 :- use_module('declarative_module.pl').
 :- use_module('test_module.pl').
 :- include('buffers.pl').
@@ -32,7 +32,7 @@ call_event(nil), now(Time) <=> true.
 
 call_event(q(Time,Priority,Evt)), now(Now) <=> Now =< Time | write(Now:Time:Priority),write(' ... '),write('calling event: '), write(Evt),nl,call(Evt),now(Time),nextcyc.
 
-now(Time) \ conflict_resolution <=> add_q(Time,0,do_conflict_resolution),write('q: '),print_q(s),nl.
+now(Time) \ conflict_resolution <=> add_q(Time,0,do_conflict_resolution),write('q: ').
 
 do_conflict_resolution <=> fire.%TODO add proper conflict resolution mechanism
 

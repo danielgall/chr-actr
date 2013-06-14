@@ -1,3 +1,4 @@
+:- module(priority_queue, [add_q/3,de_q/1,after_next_event/1]).
 :- use_module(library(chr)).
 
 
@@ -7,7 +8,7 @@
 
 :- op(900, xfx, ['-->']).
   
-:- chr_constraint (-->)/2, add_q/3, de_q/1, after_next_event/1,print_q/1.
+:- chr_constraint (-->)/2, add_q/3, de_q/1, after_next_event/1.
 
 add_q(Time,Priority,Evt) <=>
   s --> q(Time,Priority,Evt).
@@ -45,4 +46,3 @@ s --> q(Time,P1,E1) \ after_next_event(Evt) <=>
   add_q(Time,NP1,E1), % add head of queue again with new priority. Will be first again, because it has old prio (which is higher than prio of all successors)
   add_q(Time,P,Evt). % add new event. Will be < than Prio of head but it is ensured that it is higher than prio of second event
   
-A --> B \ print_q(A) <=> write(B),print_q(B).
