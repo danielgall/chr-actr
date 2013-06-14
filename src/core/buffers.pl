@@ -85,24 +85,22 @@ now(Now) \ buffer_request(BufName, Chunk) <=>
   
 % Handle buffer_request
 do_buffer_request(BufName, Chunk), buffer(BufName, ModName, _), buffer_state(BufName,_) <=>  %% todo: check for free buffer!!
-  write('heeeeereeee'),nl,
+  
   ModName:module_request(BufName, Chunk, ResChunk,ResState),
+  write('performing request: '),write(BufName),nl,
   (ResState=error, 
-  write('here1'),nl,
   buffer(BufName, ModName, nil),
   buffer_state(BufName,error) ;
   
   ResState = free,
   ResChunk = chunk(ResChunkName,_,_),
-  write('here'),nl,
   add_chunk(ResChunk), 
-  write('and here'),nl,
   buffer(BufName, ModName, ResChunkName),
   buffer_state(BufName,free)).
   
 % Schedule buffer_change
 now(Now) \ buffer_change(BufName, Chunk) <=> 
-  Time is Now + 1, 
+  Time is Now + 0, 
   add_q(Time, 100, do_buffer_change(BufName, Chunk)).
 
 % Handle buffer_change
@@ -120,7 +118,7 @@ set_buffer_state(BufName, State), buffer_state(BufName, _) <=> buffer_state(BufN
   
 
 % Schedule buffer_clear
-now(Now) \ buffer_clear(BufName) <=> Time is Now + 1, add_q(Time, 10, do_buffer_clear(BufName)).  
+now(Now) \ buffer_clear(BufName) <=> Time is Now + 0, add_q(Time, 10, do_buffer_clear(BufName)).  
   
 % Handle buffer_clear
 do_buffer_clear(BufName), buffer(BufName, ModName, Chunk) <=> write('clear buffer '),write(BufName),nl, write_to_dm(Chunk), buffer(BufName, ModName, nil).
