@@ -61,7 +61,7 @@
 % Rules %
 %%%%%%%%%
 
-:- chr_constraint now/1, do_buffer_request/2,do_buffer_change/2,do_buffer_clear/1, buffer_state/2, set_buffer_state/2.
+:- chr_constraint now/1, do_buffer_request/2,do_buffer_change/2,do_buffer_clear/1, buffer_state/2, set_buffer_state/2, performed_request/3.
 
 % write error state
 buffer_state(BufName,error) ==> write('error in buffer '),write(BufName),nl.
@@ -75,18 +75,18 @@ buffer(BufName, ModName, nil),
 buffer_state(BufName,free). 
 
 % Schedule buffer_request
-now(Now) \ buffer_request(BufName, Chunk) <=> 
+now(Now), buffer(BufName, ModName, _) \ buffer_request(BufName, Chunk) <=> %% todo: check for free buffer!!
   buffer_state(BufName,busy),
   do_buffer_clear(BufName), % clear buffer immediately
-  Time is Now + 1, 
-  add_q(Time, 50, do_buffer_request(BufName, Chunk)).
+  ModName:module_request(BufName, Chunk, ResChunk,ResState,RelTime),
+  performed_request(BufName, ResChunk, ResState), % save result of request
+  Time is Now + RelTime, 
+  add_q(Time, 0, do_buffer_request(BufName, Chunk)).
 
   % TODO Buffer states noch nicht korrekt?? Tests…
   
 % Handle buffer_request
-do_buffer_request(BufName, Chunk), buffer(BufName, ModName, _), buffer_state(BufName,_) <=>  %% todo: check for free buffer!!
-  
-  ModName:module_request(BufName, Chunk, ResChunk,ResState),
+do_buffer_request(BufName, Chunk), buffer(BufName, ModName, _), buffer_state(BufName,_), performed_request(BufName, ResChunk, ResState) <=>  %% todo: check for free buffer!!
   write('performing request: '),write(BufName),nl,
   (ResState=error, 
   buffer(BufName, ModName, nil),

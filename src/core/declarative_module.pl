@@ -54,8 +54,8 @@
 % Implemented abstract constraints from interface "module" %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-:- chr_constraint module_request(+,+chunk_def,+chunk_def,+).
-% module_request(BufName,Chunk,ResChunk,ResState)
+:- chr_constraint module_request(+,+chunk_def,-chunk_def,-,-).
+% module_request(BufName,Chunk,ResChunk,ResState,RelTime)
 
 % add_chunk_type(ChunkTypeName, [SlotNames]).
 
@@ -66,15 +66,16 @@
 add_dm(ChunkDef) <=> add_chunk(ChunkDef).
 
 
-chunk(Name,Type) \ module_request(goal,chunk(Name,Type,_),ResChunk,ResState) <=> return_chunk(Name,ResChunk), ResState=free.
-module_request(goal,_,ResChunk,ResState) <=> ResChunk = nil, ResState=error. % chunk not found
+chunk(Name,Type) \ module_request(goal,chunk(Name,Type,_),ResChunk,ResState,RelTime) <=> return_chunk(Name,ResChunk), ResState=free, RelTime=0.
+module_request(goal,_,ResChunk,ResState,RelTime) <=> ResChunk = nil, ResState=error, RelTime=0. % chunk not found
 
-module_request(retrieval,nil,ResChunk,ResState) <=> ResChunk = nil,ResState=free.
-module_request(retrieval,chunk(Name,Type,Slots),ResChunk,ResState) <=> 
+module_request(retrieval,nil,ResChunk,ResState,RelTime) <=> ResChunk = nil,ResState=free,RelTime=1. %TODO: Add proper time (activation)
+module_request(retrieval,chunk(Name,Type,Slots),ResChunk,ResState,RelTime) <=> 
   find_chunk(Name,Type,Slots),
   collect_matches(Res),
-  write('Matches: '),write(Res),nl,
-  choose_chunk(Res,ResChunk,ResState).
+  %write('Matches: '),write(Res),nl,
+  choose_chunk(Res,ResChunk,ResState),
+  RelTime=1.
 
 find_chunk(N1,T1,Ss), chunk(N2,T2) ==> unifiable((N1,T1),(N2,T2),_), nonvar(Ss) | test_slots(N2,Ss), match_set([N2]).
 find_chunk(N1,T1,Ss), chunk(N2,T2) ==> unifiable((N1,T1),(N2,T2),_), var(Ss) | test_slots(N2,[]), match_set([N2]).
@@ -89,5 +90,5 @@ collect_matches(_) \ match_set(L1), match_set(L2) <=> append(L1,L2,L), match_set
 collect_matches(Res), match_set(L) <=> Res=L.
 collect_matches(Res) <=> Res=[].
 
-choose_chunk([],nil,error) :- write('choose').
+choose_chunk([],nil,error).
 choose_chunk([N|_],C,free):- return_chunk(N,C).
