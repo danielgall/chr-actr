@@ -142,6 +142,15 @@ compile_structure3_lhs(neg_slot_test(slot_variable_pair(slot(S),variable(V))), C
   R = [chunk_has_slot(Chunk,S,X)],
   Guard = [X \== Var].
   
+  
+compile_structure2_lhs(buffer_query(buffer(_), queries([])),R, Guard) <=> R=[],Guard=[].
+compile_structure2_lhs(buffer_query(buffer(Buffer), queries([(QueriedItem,QueryValue)|Qs])),R, Guard) <=> 
+  compile_structure2_lhs(buffer_query(buffer(Buffer), queries(Qs)),RNext, _),
+  append([buffer_state(Buffer,QueriedItem,QueryValue)],RNext,R),
+  Guard = [].
+
+%TODO add support for query values as bound variables  
+  
 % RHS
 %%    
   

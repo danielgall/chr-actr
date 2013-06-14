@@ -61,27 +61,49 @@
 % Rules %
 %%%%%%%%%
 
-:- chr_constraint now/1, do_buffer_request/2,do_buffer_change/2,do_buffer_clear/1.
+:- chr_constraint now/1, do_buffer_request/2,do_buffer_change/2,do_buffer_clear/1, buffer_state/2, set_buffer_state/2.
+
+% write error state
+buffer_state(BufName,error) ==> write('error in buffer '),write(BufName),nl.
 
 % Handle add_buffer
 buffer(BufName, _, _) \ add_buffer(BufName, _) <=> false. % buffers must have distinct names
-add_buffer(BufName, ModName) <=> buffer(BufName, ModName, nil). % create empty buffer
+
+% create empty buffer
+add_buffer(BufName, ModName) <=> 
+buffer(BufName, ModName, nil),
+buffer_state(BufName,free). 
 
 % Schedule buffer_request
 now(Now) \ buffer_request(BufName, Chunk) <=> 
+  buffer_state(BufName,busy),
   do_buffer_clear(BufName), % clear buffer immediately
   Time is Now + 1, 
   add_q(Time, do_buffer_request(BufName, Chunk)).
 
+  % TODO Buffer states noch nicht korrekt?? Tests…
+  
 % Handle buffer_request
-do_buffer_request(BufName, Chunk), buffer(BufName, ModName, _) <=> 
-  ModName:module_request(BufName, Chunk, ResChunk), 
-  ResChunk=chunk(ResChunkName,_,_), 
+do_buffer_request(BufName, Chunk), buffer(BufName, ModName, _), buffer_state(BufName,_) <=>  %% todo: check for free buffer!!
+  write('heeeeereeee'),nl,
+  ModName:module_request(BufName, Chunk, ResChunk,ResState),
+  (ResState=error, 
+  write('here1'),nl,
+  buffer(BufName, ModName, nil),
+  buffer_state(BufName,error) ;
+  
+  ResState = free,
+  ResChunk = chunk(ResChunkName,_,_),
+  write('here'),nl,
   add_chunk(ResChunk), 
-  buffer(BufName, ModName, ResChunkName).
-
+  write('and here'),nl,
+  buffer(BufName, ModName, ResChunkName),
+  buffer_state(BufName,free)).
+  
 % Schedule buffer_change
-now(Now) \ buffer_change(BufName, Chunk) <=> Time is Now + 1, add_q(Time, do_buffer_change(BufName, Chunk)).
+now(Now) \ buffer_change(BufName, Chunk) <=> 
+  Time is Now + 1, 
+  add_q(Time, do_buffer_change(BufName, Chunk)).
 
 % Handle buffer_change
 buffer(BufName, _, OldChunk) \ do_buffer_change(BufName, chunk(_,_,SVs)) <=>
@@ -93,6 +115,8 @@ set_buffer(BufName, nil), buffer(BufName, ModName, _)  <=>
   
 set_buffer(BufName, chunk(ChunkName, _, _)), buffer(BufName, ModName, _) <=>
   buffer(BufName, ModName, ChunkName).
+  
+set_buffer_state(BufName, State), buffer_state(BufName, _) <=> buffer_state(BufName, State).
   
 
 % Schedule buffer_clear

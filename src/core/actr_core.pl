@@ -10,9 +10,10 @@
 :- chr_constraint goal_focus/1, init/0, output/1, do_output/1, nextcyc/0.
 
 goal_focus(Chunk) <=>
-  declarative_module:module_request(goal,chunk(Chunk,_,_),ResChunk),
+  declarative_module:module_request(goal,chunk(Chunk,_,_),ResChunk,ResState),
   add_chunk(ResChunk),
-  set_buffer(goal,ResChunk).
+  set_buffer(goal,ResChunk),
+  set_buffer_state(goal,ResState).
   
 init <=>
     declarative_module(declarative_module).

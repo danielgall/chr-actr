@@ -56,6 +56,9 @@ lhs(lhs(BufTests)) --> buffer_tests(BufTests).
 buffer_tests(buffer_tests(BufferTest)) --> buffer_test(BufferTest).
 buffer_tests(buffer_tests(BufferTest, Next)) --> buffer_test(BufferTest), buffer_tests(Next).
 
+buffer_tests(buffer_tests(BufferQuery)) --> buffer_query(BufferQuery).
+buffer_tests(buffer_tests(BufferQuery, Next)) --> buffer_query(BufferQuery), buffer_tests(Next).
+
 buffer_test(buffer_test(Buffer, ChunkType, SlotTests)) --> [=], buffer(Buffer), [>, isa, ChunkType], slot_tests(SlotTests), {identifier(ChunkType)}.
 
 slot_tests(slot_tests(SlotTest)) --> slot_test(SlotTest).
@@ -77,6 +80,14 @@ buffer(buffer(BufferName)) --> [BufferName], { identifier(BufferName) }.
 slot(slot(SlotName)) --> [SlotName], { identifier(SlotName) }.
 value(value(ValueToken)) --> [ValueToken], { identifier(ValueToken) }.
 variable(variable(VariableName)) --> [VariableName], { identifier(VariableName) }.
+
+buffer_query(buffer_query(Buffer, Queries)) --> [?], buffer(Buffer), [>], queries(Queries).
+
+queries(queries([neg(QueriedItem,QueryValue)])) --> [-,QueriedItem, QueryValue], { identifier(QueriedItem), identifier(QueryValue) }.
+queries(queries([neg(QueriedItem,QueryValue)|Qs])) --> [-,QueriedItem, QueryValue], queries(Qs), { identifier(QueriedItem), identifier(QueryValue) }.
+
+queries(queries([(QueriedItem,QueryValue)])) --> [QueriedItem, QueryValue], { identifier(QueriedItem), identifier(QueryValue) }.
+queries(queries([(QueriedItem,QueryValue)|Qs])) --> [QueriedItem, QueryValue], queries(Qs), { identifier(QueriedItem), identifier(QueryValue) }.
 
 rhs(rhs(BufferOperations)) --> buffer_operations(BufferOperations).
 
