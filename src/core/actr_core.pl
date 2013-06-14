@@ -18,9 +18,9 @@ goal_focus(Chunk) <=>
 init <=>
     declarative_module(declarative_module).
     
-now(Now) \ output(X) <=> Time is Now + 1, add_q(Time,do_output(X)).
-
-do_output(X) <=> write(X),nl.
+%now(Now) \ output(X) <=> Time is Now + 1, add_q(Time,do_output(X)).
+%do_output(X) <=> write(X),nl.
+output(X) <=> write(X),nl.  % reference p. 166: eval output, bind calls occur during fire event => immediately
 
 :- chr_constraint call_event/1.
 
@@ -29,7 +29,7 @@ nextcyc <=> de_q(Evt), call_event(Evt).
 
 call_event(nil), now(Time) <=> now(Time),fire.
 
-call_event(q(Time,Evt)), now(_) <=> write(Time),write(' ... '),write('calling event: '), write(Evt),nl,call(Evt),now(Time),nextcyc.
+call_event(q(Time,Priority,Evt)), now(_) <=> write(Time:Priority),write(' ... '),write('calling event: '), write(Evt),nl,call(Evt),now(Time),nextcyc.
 
 nextcyc <=> fire.
   
