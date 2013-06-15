@@ -54,8 +54,8 @@
 % Implemented abstract constraints from interface "module" %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-:- chr_constraint module_request(+,+chunk_def,-chunk_def,-,-).
-% module_request(BufName,Chunk,ResChunk,ResState,RelTime)
+:- chr_constraint module_request(+,+chunk_def,+,-chunk_def,-,-).
+% module_request(BufName,Chunk,ContextResChunk,ResState,RelTime)
 
 % add_chunk_type(ChunkTypeName, [SlotNames]).
 
@@ -66,16 +66,21 @@
 add_dm(ChunkDef) <=> add_chunk(ChunkDef).
 
 
-chunk(Name,Type) \ module_request(goal,chunk(Name,Type,_),ResChunk,ResState,RelTime) <=> return_chunk(Name,ResChunk), ResState=free, RelTime=0.
-module_request(goal,_,ResChunk,ResState,RelTime) <=> ResChunk = nil, ResState=error, RelTime=0. % chunk not found
+chunk(Name,Type) \ module_request(goal,chunk(Name,Type,_),_,ResChunk,ResState,RelTime) <=> return_chunk(Name,ResChunk), ResState=free, RelTime=0.
+module_request(goal,_,_,ResChunk,ResState,RelTime) <=> ResChunk = nil, ResState=error, RelTime=0. % chunk not found
 
-module_request(retrieval,nil,ResChunk,ResState,RelTime) <=> ResChunk = nil,ResState=free,RelTime=1. %TODO: Add proper time (activation)
-module_request(retrieval,chunk(Name,Type,Slots),ResChunk,ResState,RelTime) <=> 
+module_request(retrieval,nil,_,ResChunk,ResState,RelTime) <=> ResChunk = nil,ResState=free,RelTime=1. %TODO: Add proper time (activation)
+module_request(retrieval,chunk(Name,Type,Slots),Context,ResChunk,ResState,RelTime) <=> 
   find_chunk(Name,Type,Slots),
   collect_matches(Res),
   %write('Matches: '),write(Res),nl,
   choose_chunk(Res,ResChunk,ResState),
-  RelTime=1.
+  calc_time(Context,RelTime).
+  
+calc_time(Context,ResTime) :-
+  write('YESSSS!!!!!'),nl,
+  write(Context),nl,
+  ResTime=1. %TODO
 
 find_chunk(N1,T1,Ss), chunk(N2,T2) ==> unifiable((N1,T1),(N2,T2),_), nonvar(Ss) | test_slots(N2,Ss), match_set([N2]).
 find_chunk(N1,T1,Ss), chunk(N2,T2) ==> unifiable((N1,T1),(N2,T2),_), var(Ss) | test_slots(N2,[]), match_set([N2]).

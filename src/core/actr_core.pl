@@ -9,7 +9,7 @@
 :- chr_constraint goal_focus/1, init/0, output/1, do_output/1.
 
 goal_focus(Chunk) <=>
-  declarative_module:module_request(goal,chunk(Chunk,_,_),ResChunk,ResState,_),
+  declarative_module:module_request(goal,chunk(Chunk,_,_),[],ResChunk,ResState,_),
   add_chunk(ResChunk),
   set_buffer(goal,ResChunk),
   set_buffer_state(goal,ResState).
@@ -28,7 +28,7 @@ output(X) <=> write(output:X),nl.  % reference p. 166: eval output, bind calls o
 
 :- use_module('priority_queue.pl').
 
-:- chr_constraint call_event(QueueElement).
+:- chr_constraint call_event(+).
 % Takes a q(Time,Priority,Event) and calls Event.
 % It prints the time and priority of the event and the explicit call.
 
@@ -62,4 +62,11 @@ do_conflict_resolution <=> fire.%TODO add proper conflict resolution mechanism
 % no rule matched
 no_rule <=> write('No rule matches -> Schedule next conflict resolution event'),nl,after_next_event(do_conflict_resolution).
 
-  
+% TODO
+:- chr_constraint get_context/1, context/1, collect_context/1.
+
+chunk_has_slot(_,_,V), get_context(_) ==> context([V]).
+get_context(Context) <=> write('context'),collect_context(Context). % no more slots => collect results
+
+context(C1),context(C2) <=> append(C1,C2,C), context(C).
+context(C), collect_context(Context) <=> Context = C.  

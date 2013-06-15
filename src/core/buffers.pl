@@ -57,6 +57,8 @@
 % Writes the chunk Chunk to declarative memory.
 % The module which acts as declarative memory is defined by declarative_module/1.
 
+:- chr_constraint delete_chunk(+).
+
 %%%%%%%%%
 % Rules %
 %%%%%%%%%
@@ -78,7 +80,8 @@ buffer_state(BufName,free).
 now(Now), buffer(BufName, ModName, _) \ buffer_request(BufName, Chunk) <=> %% todo: check for free buffer!!
   buffer_state(BufName,busy),
   do_buffer_clear(BufName), % clear buffer immediately
-  ModName:module_request(BufName, Chunk, ResChunk,ResState,RelTime),
+  get_context(Context),
+  ModName:module_request(BufName, Chunk, Context, ResChunk,ResState,RelTime),
   performed_request(BufName, ResChunk, ResState), % save result of request
   Time is Now + RelTime, 
   add_q(Time, 0, do_buffer_request(BufName, Chunk)).
@@ -121,9 +124,12 @@ set_buffer_state(BufName, State), buffer_state(BufName, _) <=> buffer_state(BufN
 now(Now) \ buffer_clear(BufName) <=> Time is Now + 0, add_q(Time, 10, do_buffer_clear(BufName)).  
   
 % Handle buffer_clear
-do_buffer_clear(BufName), buffer(BufName, ModName, Chunk) <=> write('clear buffer '),write(BufName),nl, write_to_dm(Chunk), buffer(BufName, ModName, nil).
+do_buffer_clear(BufName), buffer(BufName, ModName, Chunk) <=> write('clear buffer '),write(BufName),nl, write_to_dm(Chunk), delete_chunk(Chunk), buffer(BufName, ModName, nil).
 
 % Handle write_to_dm
 declarative_module(DM) \ write_to_dm(ChunkName) <=> return_chunk(ChunkName, ResChunk), DM:add_dm(ResChunk).
 
+delete_chunk(Name) \ chunk(Name,_) <=> true.
+delete_chunk(Name) \ chunk_has_slot(Name,_,_) <=> true.
+delete_chunk(_) <=> true.
 
