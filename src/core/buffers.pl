@@ -15,8 +15,6 @@
 :- chr_constraint buffer(+,+,+).
 % buffer(Name, ModName, ChunkName)
 
-:- chr_constraint declarative_module(+). % saves the name of the declarative module (may be exchanged if another implementation should be used)
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % Procedural Constraints %
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -51,13 +49,12 @@
 % saves the name of the chunk in Chunk to the buffer without any side-effects.
 % Neither is the old chunk saved, nor is a new chunk-constraint with corresponding slots created!
 
+:- chr_constraint delete_chunk(+).
 
 :- chr_constraint write_to_dm(+).
 % write_to_dm(+Chunk)
 % Writes the chunk Chunk to declarative memory.
 % The module which acts as declarative memory is defined by declarative_module/1.
-
-:- chr_constraint delete_chunk(+).
 
 %%%%%%%%%
 % Rules %
@@ -126,10 +123,9 @@ now(Now) \ buffer_clear(BufName) <=> Time is Now + 0, add_q(Time, 10, do_buffer_
 % Handle buffer_clear
 do_buffer_clear(BufName), buffer(BufName, ModName, Chunk) <=> write('clear buffer '),write(BufName),nl, write_to_dm(Chunk), delete_chunk(Chunk), buffer(BufName, ModName, nil).
 
-% Handle write_to_dm
-declarative_module(DM) \ write_to_dm(ChunkName) <=> return_chunk(ChunkName, ResChunk), DM:add_dm(ResChunk).
-
 delete_chunk(Name) \ chunk(Name,_) <=> true.
 delete_chunk(Name) \ chunk_has_slot(Name,_,_) <=> true.
 delete_chunk(_) <=> true.
 
+% Handle write_to_dm
+write_to_dm(ChunkName) <=> return_chunk(ChunkName, ResChunk), add_dm(ResChunk).

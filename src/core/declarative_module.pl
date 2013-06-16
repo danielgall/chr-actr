@@ -50,6 +50,7 @@
 
 :- chr_constraint match_set(+list(any)).
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Implemented abstract constraints from interface "module" %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -62,6 +63,8 @@
 %%%%%%%%%
 % Rules %
 %%%%%%%%%
+
+%%% IMPORTANT TODO: ADD CHUNK MERGING!!!!!!!!!!!!! %%%%%
 
 add_dm(ChunkDef) <=> add_chunk(ChunkDef).
 
