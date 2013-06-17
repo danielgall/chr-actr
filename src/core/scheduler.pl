@@ -28,7 +28,7 @@
 nextcyc <=> de_q(Evt), call_event(Evt).
 
 % no event in queue -> do nothing and remove current time
-call_event(nil), now(Time) <=> write('Hello'),nl,true.
+call_event(nil), now(_) <=> write('Hello'),nl,true.
 
 call_event(q(Time,Priority,Evt)), now(Now) <=> Now =< Time | write(Now:Time:Priority),now(Time),write(yeah:Time),nl,write(' ... '),write('calling event: '), write(Evt),nl,call(Evt),nextcyc.
 

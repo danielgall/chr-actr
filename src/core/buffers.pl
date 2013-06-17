@@ -87,7 +87,7 @@ buffer(BufName, ModName, _) \ buffer_request(BufName, Chunk) <=> %% todo: check 
   % TODO Buffer states noch nicht korrekt?? Tests…
   
 % Handle buffer_request
-do_buffer_request(BufName, Chunk), buffer(BufName, ModName, _), buffer_state(BufName,_), performed_request(BufName, ResChunk, ResState) <=>  %% todo: check for free buffer!!
+do_buffer_request(BufName, _), buffer(BufName, ModName, _), buffer_state(BufName,_), performed_request(BufName, ResChunk, ResState) <=>  %% todo: check for free buffer!!
   write('performing request: '),write(BufName),nl,
   (ResState=error, 
   buffer(BufName, ModName, nil),

@@ -122,7 +122,7 @@ collect_matches(Res) <=> Res=[].
 get_state(nil,error).
 get_state(_,free).
 
-max(N1,A1) \ max(N2,A2) <=> 
+max(_,A1) \ max(_,A2) <=> 
   A1 >= A2 |
   true.
   
@@ -150,15 +150,15 @@ calc_activations([C|Cs]) <=>
   write(C:A),nl,
   max(C,A).
   
-presentation(C,PTime), calc_activation(C,A) ==> get_now(Now), Time is Now - PTime, base_level_part(C,Time,B,A).
+presentation(C,PTime), calc_activation(C,A) ==> get_now(Now), Time is Now - PTime, base_level_part(C,Time,_,A).
 calc_activation(_,_) <=> true.
 
-base_level_part(C,Time,B,A) ==>
+base_level_part(_,Time,B,A) ==>
   var(A), var(B), Time =\= 0 |
   write('komisch'),nl,
   B is Time ** (-0.5).
   
-base_level_part(C,Time,B,A) ==>
+base_level_part(_,Time,B,A) ==>
   var(A), var(B), Time =:= 0 |
   write('komisch1'),nl,
   B=0.
@@ -169,11 +169,11 @@ base_level_part(C,_,B1,A), base_level_part(C,_,B2,A) <=>
   base_level_part(C,_,B,A).
     
   
-base_level_part(C,_,B,A) <=>
+base_level_part(_,_,B,A) <=>
   var(A),nonvar(B), B =\= 0 |
   A is log(B).
 
-base_level_part(C,_,B,A) <=>
+base_level_part(_,_,B,A) <=>
   var(A),nonvar(B), B == 0 |
   write('somehow B is 0...'),nl,
   A is 0.
