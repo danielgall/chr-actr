@@ -122,6 +122,9 @@ max(N1,A1) \ max(N2,A2) <=>
 get_max(M), max(N,_) <=> 
   M=N,
   write(max:M),nl.
+  
+get_max(M) <=>
+  M=nil.
 
 
 %
