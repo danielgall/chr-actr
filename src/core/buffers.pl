@@ -60,7 +60,7 @@
 % Rules %
 %%%%%%%%%
 
-:- chr_constraint now/1, do_buffer_request/2,do_buffer_change/2,do_buffer_clear/1, buffer_state/2, set_buffer_state/2, performed_request/3.
+:- chr_constraint do_buffer_request/2,do_buffer_change/2,do_buffer_clear/1, buffer_state/2, set_buffer_state/2, performed_request/3.
 
 % write error state
 buffer_state(BufName,error) ==> write('error in buffer '),write(BufName),nl.
@@ -74,7 +74,8 @@ buffer(BufName, ModName, nil),
 buffer_state(BufName,free). 
 
 % Schedule buffer_request
-now(Now), buffer(BufName, ModName, _) \ buffer_request(BufName, Chunk) <=> %% todo: check for free buffer!!
+buffer(BufName, ModName, _) \ buffer_request(BufName, Chunk) <=> %% todo: check for free buffer!!
+  get_now(Now),
   buffer_state(BufName,busy),
   do_buffer_clear(BufName), % clear buffer immediately
   get_context(Context),
@@ -99,7 +100,9 @@ do_buffer_request(BufName, Chunk), buffer(BufName, ModName, _), buffer_state(Buf
   buffer_state(BufName,free)).
   
 % Schedule buffer_change
-now(Now) \ buffer_change(BufName, Chunk) <=> 
+buffer_change(BufName, Chunk) <=> 
+  get_now(Now),
+  write(now:Now),nl,
   Time is Now + 0, 
   add_q(Time, 100, do_buffer_change(BufName, Chunk)).
 
@@ -118,10 +121,17 @@ set_buffer_state(BufName, State), buffer_state(BufName, _) <=> buffer_state(BufN
   
 
 % Schedule buffer_clear
-now(Now) \ buffer_clear(BufName) <=> Time is Now + 0, add_q(Time, 10, do_buffer_clear(BufName)).  
+buffer_clear(BufName) <=> 
+  get_now(Now),
+  Time is Now + 0, 
+  add_q(Time, 10, do_buffer_clear(BufName)).  
   
 % Handle buffer_clear
-do_buffer_clear(BufName), buffer(BufName, ModName, Chunk) <=> write('clear buffer '),write(BufName),nl, write_to_dm(Chunk), delete_chunk(Chunk), buffer(BufName, ModName, nil).
+do_buffer_clear(BufName), buffer(BufName, ModName, Chunk) <=> 
+  write('clear buffer '),write(BufName),nl, 
+  write_to_dm(Chunk), 
+  delete_chunk(Chunk), 
+  buffer(BufName, ModName, nil).
 
 delete_chunk(Name) \ chunk(Name,_) <=> true.
 delete_chunk(Name) \ chunk_has_slot(Name,_,_) <=> true.

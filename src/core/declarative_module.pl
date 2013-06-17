@@ -4,6 +4,8 @@
 
 :- include('chunk_management.pl').
 
+:- use_module('scheduler.pl').
+
 %%%%%%%%%%%%%%
 % Data Types %
 %%%%%%%%%%%%%%
@@ -15,6 +17,15 @@
 %%%%%%%%%%%%%%%%%%%%
 
 % derived from chunk_management
+
+% Chunk Activation
+
+:- chr_constraint base_level_part/4, calc_activation/2, calc_activations/1, max/2, get_max/1.
+
+:- chr_constraint present(+chunk_def).
+
+:- chr_constraint presentation(+,+).
+% presentation(Chunk, Time)
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -66,7 +77,7 @@
 
 %%% IMPORTANT TODO: ADD CHUNK MERGING!!!!!!!!!!!!! %%%%%
 
-add_dm(ChunkDef) <=> add_chunk(ChunkDef).
+add_dm(ChunkDef) <=> add_chunk(ChunkDef), present(ChunkDef).
 
 
 chunk(Name,Type) \ module_request(goal,chunk(Name,Type,_),_,ResChunk,ResState,RelTime) <=> return_chunk(Name,ResChunk), ResState=free, RelTime=0.
@@ -76,8 +87,11 @@ module_request(retrieval,nil,_,ResChunk,ResState,RelTime) <=> ResChunk = nil,Res
 module_request(retrieval,chunk(Name,Type,Slots),Context,ResChunk,ResState,RelTime) <=> 
   find_chunk(Name,Type,Slots),
   collect_matches(Res),
-  %write('Matches: '),write(Res),nl,
-  choose_chunk(Res,ResChunk,ResState),
+  write('Matches: '),write(Res),nl,
+  calc_activations(Res),
+  get_max(MaxChunk),
+  return_chunk(MaxChunk,ResChunk),
+  get_state(ResChunk,ResState),
   calc_time(Context,RelTime).
   
 calc_time(Context,ResTime) :-
@@ -98,5 +112,51 @@ collect_matches(_) \ match_set(L1), match_set(L2) <=> append(L1,L2,L), match_set
 collect_matches(Res), match_set(L) <=> Res=L.
 collect_matches(Res) <=> Res=[].
 
-choose_chunk([],nil,error).
-choose_chunk([N|_],C,free):- return_chunk(N,C).
+get_state(nil,error).
+get_state(_,free).
+
+max(N1,A1) \ max(N2,A2) <=> 
+  A1 >= A2 |
+  true.
+  
+get_max(M), max(N,_) <=> 
+  M=N,
+  write(max:M),nl.
+
+
+%
+% Calculate activation
+%
+
+% save presentation time of chunk
+present(chunk(Name,_,_)) <=> get_now(Time),presentation(Name,Time).
+
+calc_activations([]) <=>
+  true.
+calc_activations([C|Cs]) <=> 
+  calc_activation(C,A), 
+  calc_activations(Cs), 
+  write('Activation Chunk '),
+  write(C:A),nl,
+  max(C,A).
+  
+presentation(C,PTime), calc_activation(C,A) ==> get_now(Now), Time is Now - PTime, base_level_part(C,Time,B,A).
+
+base_level_part(C,Time,B,A) ==>
+  var(A), var(B) |
+  B is Time ** 0.5.
+
+base_level_part(C,_,B1,A), base_level_part(C,_,B2,A) <=>
+  nonvar(B1), nonvar(B2), var(A) |
+  B is B1+B2,
+  base_level_part(C,_,B,A).
+    
+  
+base_level_part(C,_,B,A) <=>
+  var(A),nonvar(B), B =\= 0 |
+  A is log(B).
+
+base_level_part(C,_,B,A) <=>
+  var(A),nonvar(B), B == 0 |
+  write('somehow B is 0...'),nl,
+  A is 0.
