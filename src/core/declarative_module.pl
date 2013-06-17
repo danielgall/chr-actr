@@ -141,10 +141,17 @@ calc_activations([C|Cs]) <=>
   max(C,A).
   
 presentation(C,PTime), calc_activation(C,A) ==> get_now(Now), Time is Now - PTime, base_level_part(C,Time,B,A).
+calc_activation(_,_) <=> true.
 
 base_level_part(C,Time,B,A) ==>
-  var(A), var(B) |
-  B is Time ** 0.5.
+  var(A), var(B), Time =\= 0 |
+  write('komisch'),nl,
+  B is Time ** (-0.5).
+  
+base_level_part(C,Time,B,A) ==>
+  var(A), var(B), Time =:= 0 |
+  write('komisch1'),nl,
+  B=0.
 
 base_level_part(C,_,B1,A), base_level_part(C,_,B2,A) <=>
   nonvar(B1), nonvar(B2), var(A) |
