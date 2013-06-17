@@ -65,20 +65,71 @@
 add_chunk_type(CT, []) <=> chunk_type(CT).
 add_chunk_type(CT, [S|Ss]) <=> chunk_type_has_slot(CT, S), add_chunk_type(CT, Ss).
 
+% 
+% Adding of multiple chunks at once
+add_chunks([]) <=> true.
+add_chunks([C|Cs]) <=> add_chunk(C), add_chunks(Cs).
+
+%
+% Add a chunk to memory
+
+chunk(Name,Type) \ add_chunk(chunk(Name,Type,Slots))
+  <=> add_chunk(chunk(Name:new,Type,Slots)).
+  
+identical(_,C) \ add_chunk(chunk(C,_,_)) <=> true.
+
+% delete chunks with new name
+identical(C,C:new) <=> true.
+
+% empty chunk will not be added
 add_chunk(nil) <=> true.
-% initialize all slots with nil
+
+% first check, if identical chunk exists
+add_chunk(C) ==> 
+  check_identical_chunks(C).
+  
+% initialize all slots with nil. This leads to complete chunk definitions in store. Values that are not set stay nil.
 add_chunk(chunk(Name,Type, _)), chunk_type_has_slot(Type,S) ==> 
   chunk_has_slot(Name,S,nil).
 
+% chunk has been initialized with empty slots -> actually add chunk
 add_chunk(chunk(Name,Type, Slots)) <=>
   do_add_chunk(chunk(Name,Type,Slots)).
 
-do_add_chunk(chunk(Name, Type, [])) <=> chunk(Name, Type).
-do_add_chunk(chunk(Name, Type, [(S,V)|Rest])), chunk_has_slot(Name,S,nil)  <=> chunk_has_slot(Name, S,V), do_add_chunk(chunk(Name,Type,Rest)).
+do_add_chunk(chunk(Name, Type, [])) <=> chunk(Name, Type). % base case
+do_add_chunk(chunk(Name, Type, [(S,V)|Rest])), chunk_has_slot(Name,S,nil)  <=> % overwrite slots with empty values
+  chunk_has_slot(Name, S,V), 
+  do_add_chunk(chunk(Name,Type,Rest)).
 
-add_chunks([]) <=> true.
-add_chunks([C|Cs]) <=> add_chunk(C), add_chunks(Cs).
+%
+% Chunk merging (needed for adding)
+
+:- chr_constraint check_identical_chunks/1, check_identical_chunks/2, identical/2.
+
+% Merge chunks with different names
+check_identical_chunks(nil) <=> true.
+chunk(NameOld,Type), check_identical_chunks(chunk(NameNew,Type,Slots)) ==> 
+  check_identical_chunks(chunk(NameNew,Type,Slots),NameOld).
+check_identical_chunks(_) <=> true.
+
+chunk(NameOld, Type) \ check_identical_chunks(chunk(NameNew,Type,[]),NameOld) <=> 
+  identical(NameOld,NameNew).
+chunk(NameOld, Type), chunk_has_slot(NameOld, S, V) \ check_identical_chunks(chunk(NameNew,Type,[(S,V)|Rest]),NameOld) <=> 
+  check_identical_chunks(chunk(NameNew,Type,Rest),NameOld).
+chunk(NameOld, Type), chunk_has_slot(NameOld, S, VOld) \ check_identical_chunks(chunk(_,Type,[(S,VNew)|_]),NameOld) <=> 
+  VOld \== VNew |
+  true.
   
+  
+remove_duplicates @ identical(N,N) <=> true.
+
+% abort checking for identical chunks if one has been found
+cleanup_identical_chunk_check @ identical(NameOld,NameNew) \ check_identical_chunks(chunk(NameNew,_,_),NameOld) <=> true.
+
+
+%
+% Private operations
+
 alter_slots(_,[]) <=> true.
 alter_slots(Chunk,[(S,V)|SVs]) <=> 
   alter_slot(Chunk,S,V),
