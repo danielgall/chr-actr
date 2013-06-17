@@ -79,6 +79,11 @@
 
 add_dm(ChunkDef) <=> add_chunk(ChunkDef), present(ChunkDef).
 
+% Calculate Fan of each chunk
+chunk(C,_) ==> fan(C,1).
+chunk_has_slot(_,_,C), chunk(C) ==> fan(C,1).
+
+fan(C,F1), fan(C,F2) <=> F is F1+F2, fan(C,F).
 
 chunk(Name,Type) \ module_request(goal,chunk(Name,Type,_),_,ResChunk,ResState,RelTime) <=> return_chunk(Name,ResChunk), ResState=free, RelTime=0.
 module_request(goal,_,_,ResChunk,ResState,RelTime) <=> ResChunk = nil, ResState=error, RelTime=0. % chunk not found
