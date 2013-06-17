@@ -80,8 +80,10 @@
 add_dm(ChunkDef) <=> add_chunk(ChunkDef), present(ChunkDef).
 
 % Calculate Fan of each chunk
+:- chr_constraint fan/2.
+
 chunk(C,_) ==> fan(C,1).
-chunk_has_slot(_,_,C), chunk(C) ==> fan(C,1).
+chunk_has_slot(_,_,C), chunk(C,_) ==> fan(C,1).
 
 fan(C,F1), fan(C,F2) <=> F is F1+F2, fan(C,F).
 
