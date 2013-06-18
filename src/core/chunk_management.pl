@@ -75,6 +75,8 @@ add_chunks([C|Cs]) <=> add_chunk(C), add_chunks(Cs).
 
 chunk(Name,Type) \ add_chunk(chunk(Name,Type,Slots))
   <=> add_chunk(chunk(Name:new,Type,Slots)).
+
+reduce @ identical(C1,C2) \ identical(C2,C3) <=> identical(C1,C3).
   
 identical(_,C) \ add_chunk(chunk(C,_,_)) <=> true.
 
