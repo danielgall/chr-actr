@@ -84,7 +84,7 @@
 add_dm(ChunkDef) <=> add_chunk(ChunkDef), present(ChunkDef).
 
 % Calculate Fan of each chunk
-:- chr_constraint fan/2, sji/2.
+:- chr_constraint fan/2, sji/2, set_sji/2.
 
 chunk(C,_) ==> fan(C,1).
 chunk_has_slot(_,_,C), chunk(C,_) ==> fan(C,1).
@@ -92,7 +92,10 @@ chunk_has_slot(_,_,C), chunk(C,_) ==> fan(C,1).
 fan(C,F1), fan(C,F2) <=> F is F1+F2, fan(C,F).
 
 % Calculate S_ji
-fan(C,F) ==> Sji is 2 - log(F), sji(C,Sji).
+fan(C,F) ==> Sji is 2 - log(F), set_sji(C,Sji).
+
+set_sji(C,Sji), sji(C,_) <=> sji(C,Sji).
+set_sji(C,Sji) <=> sji(C,Sji).
 
 chunk(Name,Type) \ module_request(goal,chunk(Name,Type,_),_,ResChunk,ResState,RelTime) <=> return_chunk(Name,ResChunk), ResState=free, RelTime=0.
 module_request(goal,_,_,ResChunk,ResState,RelTime) <=> ResChunk = nil, ResState=error, RelTime=0. % chunk not found
