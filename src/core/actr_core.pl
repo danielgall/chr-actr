@@ -3,6 +3,7 @@
 
 :- use_module('scheduler.pl').
 :- use_module('declarative_module.pl').
+:- use_module('configuration.pl').
 :- include('buffers.pl').
 :- include('std_lisp.pl').
 
@@ -15,7 +16,9 @@ goal_focus(Chunk) <=>
   set_buffer_state(goal,ResState).
   
 init <=>
-    declarative_module(declarative_module).
+    % retrieval threshold 
+    set_conf(rt,2). % sets latency factor lf automatically to 0.35*exp(rt)
+    
     
 %now(Now) \ output(X) <=> Time is Now + 1, add_q(Time,do_output(X)).
 %do_output(X) <=> write(X),nl.
@@ -27,6 +30,7 @@ output(X) <=> write(output:X),nl.  % reference p. 166: eval output, bind calls o
 chunk_has_slot(_,_,V), get_context(_) ==> context([V]).
 get_context(Context) <=> write('context'),collect_context(Context). % no more slots => collect results
 
+context([nil]) <=> true.
 context(C1),context(C2) <=> append(C1,C2,C), context(C).
 context(C), collect_context(Context) <=> Context = C.  
 
