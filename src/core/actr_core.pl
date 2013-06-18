@@ -14,11 +14,6 @@ goal_focus(Chunk) <=>
   add_chunk(ResChunk),
   set_buffer(goal,ResChunk),
   set_buffer_state(goal,ResState).
-  
-init <=>
-    % retrieval threshold 
-    set_conf(rt,2). % sets latency factor lf automatically to 0.35*exp(rt)
-    
     
 %now(Now) \ output(X) <=> Time is Now + 1, add_q(Time,do_output(X)).
 %do_output(X) <=> write(X),nl.

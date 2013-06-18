@@ -15,3 +15,6 @@ configuration(Var,Val) \ get_conf(Var,Res) <=> Res = Val.
 set_conf(Var,Val), configuration(Var,_) <=> configuration(Var,Val),write(config-set-to:Var:Val),nl.
 
 set_conf(Var,Val) <=> configuration(Var,Val),write(config-set-to:Var:Val),nl.
+
+% standard values (if no values have been set)
+get_conf(rt,_) ==> set_conf(rt,-0.5).

@@ -5,7 +5,7 @@
 start@buffer(goal,_,A),chunk(A,count-from),chunk_has_slot(A,start,B),chunk_has_slot(A,count,nil)\fire<=>B\==nil|buffer_change(goal,chunk(_,_,[ (count,B)])),buffer_request(retrieval,chunk(_,count-order,[ (first,B)])),conflict_resolution.
 increment@buffer(goal,_,A),chunk(A,count-from),chunk_has_slot(A,count,C),chunk_has_slot(A,end,D),buffer(retrieval,_,B),chunk(B,count-order),chunk_has_slot(B,first,C),chunk_has_slot(B,second,E)\fire<=>C\==nil,D\==C,E\==nil|buffer_change(goal,chunk(_,_,[ (count,E)])),buffer_request(retrieval,chunk(_,count-order,[ (first,E)])),output(C),conflict_resolution.
 stop@buffer(goal,_,A),chunk(A,count-from),chunk_has_slot(A,count,B),chunk_has_slot(A,end,B)\fire<=>B\==nil|buffer_clear(goal),output(stop:B),conflict_resolution.
-init@run<=>true|init,add_buffer(retrieval,declarative_module),add_buffer(goal,declarative_module),
+init@run<=>true|add_buffer(retrieval,declarative_module),add_buffer(goal,declarative_module),
 lisp_chunktype([count-order,first,second]),
 lisp_chunktype([count-from,start,end,count]),
 lisp_chunktype([chunk]),
