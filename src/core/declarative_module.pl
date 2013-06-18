@@ -5,6 +5,7 @@
 :- include('chunk_management.pl').
 
 :- use_module('scheduler.pl').
+:- use_module('configuration.pl').
 
 %%%%%%%%%%%%%%
 % Data Types %
@@ -20,13 +21,16 @@
 
 % Chunk Activation
 
-:- chr_constraint base_level_part/4, calc_activation/2, calc_activations/1, max/2, get_max/1.
+:- chr_constraint base_level_part/4, calc_activation/2, calc_activations/2, max/2, get_max/2.
 
 :- chr_constraint present(+chunk_def).
 
 :- chr_constraint presentation(+,+).
 % presentation(Chunk, Time)
 
+
+% Helper:
+:- chr_constraint threshold/1.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 % Procedural Constraints %
@@ -98,16 +102,19 @@ module_request(retrieval,chunk(Name,Type,Slots),Context,ResChunk,ResState,RelTim
   find_chunk(Name,Type,Slots),
   collect_matches(Res),
   write('Matches: '),write(Res),nl,
-  calc_activations(Res),
-  get_max(MaxChunk),
+  calc_activations(Res,Context),
+  % find threshold for maximum check
+  get_conf(rt,RT),
+  write(rt:RT),nl,
+  threshold(RT),
+  get_max(MaxChunk,MaxAct),
   return_chunk(MaxChunk,ResChunk),
   get_state(ResChunk,ResState),
-  calc_time(Context,RelTime).
+  calc_time(MaxAct,RelTime).
   
-calc_time(Context,ResTime) :-
-  write('YESSSS!!!!!'),nl,
-  write(Context),nl,
-  ResTime=1. %TODO
+calc_time(Act,ResTime) :-
+  get_conf(lf,F),
+  ResTime=F*exp(-Act). 
 
 find_chunk(N1,T1,Ss), chunk(N2,T2) ==> unifiable((N1,T1),(N2,T2),_), nonvar(Ss) | test_slots(N2,Ss), match_set([N2]).
 find_chunk(N1,T1,Ss), chunk(N2,T2) ==> unifiable((N1,T1),(N2,T2),_), var(Ss) | test_slots(N2,[]), match_set([N2]).
@@ -129,12 +136,26 @@ max(_,A1) \ max(_,A2) <=>
   A1 >= A2 |
   true.
   
-get_max(M), max(N,_) <=> 
-  M=N,
-  write(max:M),nl.
+get_max(MN,MA), max(N,A), threshold(RT) <=> 
+  A >= RT | 
+  MN=N,
+  MA=A,
+  write(max:MN:MA),nl.
   
-get_max(M) <=>
-  M=nil.
+get_max(MN,MA), max(_,A), threshold(RT) <=> 
+  A < RT | 
+  MN=nil,
+  get_conf(rt,RT), % set activation to threshold if no chunk has activation higher than threshold
+  MA=RT,
+  write('No chunk has high enough threshold'),nl,
+  write(max:MN:MA),nl.
+  
+get_max(MN,MA), threshold(RT) <=>
+  MN=nil,
+  % set activation to threshold if no chunk matches
+  MA=RT,
+  write('No chunk matches.'),nl,
+  write(max:MN:MA),nl.
 
 
 %
@@ -144,12 +165,21 @@ get_max(M) <=>
 % save presentation time of chunk
 present(chunk(Name,_,_)) <=> get_now(Time),presentation(Name,Time).
 
-calc_activations([]) <=>
+:- chr_constraint context/2.
+
+context([],Assoc) <=> Assoc=0.
+sji(C,Sji) \ context([C|Cs],Assoc) <=> context(Cs,Assoc1), write(c:C:cs:Cs:assoc1:Assoc1),nl,Assoc is Assoc1+Sji,write(assoc:Assoc),nl.
+
+calc_activations([],_) <=>
   true.
-sji(C,Sji) \ calc_activations([C|Cs]) <=> 
+calc_activations([C|Cs],Context) <=> 
   calc_activation(C,B), 
-  calc_activations(Cs), 
-  A is B + Sji,
+  calc_activations(Cs,Context),
+  context(Context,Assoc),
+  length(Context,N),
+  write(context:Context:N),nl,
+  Assoc1 is 1/N * Assoc,
+  A is B + Assoc1,
   write('Activation Chunk '),
   write(C:A),nl,
   max(C,A).
