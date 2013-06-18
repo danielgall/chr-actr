@@ -32,12 +32,18 @@ compile_file(F) :-
 
 compile_structure(model(ModelName,Functions)) <=> 
   compile_structure2(Functions,Inits),
-  Header = [add_buffer(retrieval,declarative_module), add_buffer(goal,declarative_module)],
+  init_utilities(Utilities),
+  Header = [set_default_utilities(Utilities),add_buffer(retrieval,declarative_module), add_buffer(goal,declarative_module)],
   Footer = [now(0),conflict_resolution,nextcyc],
   append(Header,Inits,L),
   append(L,Footer,ResInits),
   chrl(init,[],[run],[],ResInits).
-  
+ 
+:- chr_constraint production/1, init_utilities/1. 
+ 
+production(P), init_utilities(Utilities) <=> Utilities=[P|Rest], init_utilities(Rest).
+init_utilities(Utilities) <=> Utilities=[].
+
 compile_structure2([],Inits) <=> Inits=[].
 compile_structure2([X|Xs],Res) <=>
   compile_structure2(X,Init),
@@ -65,8 +71,9 @@ compile_structure(production_rule(production_name(Name), LHS, RHS)) <=>
   compile_structure2(RHS, ResRHS),
   end_of_block,
   append(ResRHS,[conflict_resolution],Body),
-  chrl(delay-Name, [fire|Head],[],Guard,[conflict_set([Name])]),
-  chrl(Name, Head,[fire,apply_rule(Name)],Guard,Body).
+  chrl(delay-Name, [fire|Head],[],Guard,[conflict_set(Name)]),
+  chrl(Name, Head,[fire,apply_rule(Name)],Guard,Body),
+  production(Name).
 
 % LHS
 %%  

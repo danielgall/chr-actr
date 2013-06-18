@@ -29,7 +29,7 @@ context([nil]) <=> true.
 context(C1),context(C2) <=> append(C1,C2,C), context(C).
 context(C), collect_context(Context) <=> Context = C.  
 
-:- chr_constraint set_production_utility/2, production_utility/2, conflict_set/1, apply_rule/1.
+:- chr_constraint set_production_utility/2, production_utility/2, set_default_utilities/1, conflict_set/1, apply_rule/1.
 
 set_production_utility(P,U), production_utility(P,_) <=> 
   production_utility(P,U).
@@ -37,14 +37,16 @@ set_production_utility(P,U), production_utility(P,_) <=>
 set_production_utility(P,U) <=> 
   production_utility(P,U).
   
-collect @ conflict_set(L1), conflict_set(L2) <=>
-  append(L1,L2,L), 
-  conflict_set(L).
+set_default_utilities([]) <=> true.
+set_default_utilities([P|Ps]) <=>
+  set_production_utility(P,5),
+  set_default_utilities(Ps).
+  
+find-max-utility @ production_utility(P1,U1), production_utility(P2,U2) \ conflict_set(P1), conflict_set(P2) <=>
+  U1 >= U2 |
+  conflict_set(P1).
 
-conflict_set([]) <=> write('No rule'),nl,
-  true.
-choose @ conflict_set([P|Ps]) <=>
-  write(conflict-set:[P|Ps]),nl,
+choose @ conflict_set(P) <=>
   apply_rule(P).
   
 apply_rule(P) ==> write('firing rule '),write(P),nl.
