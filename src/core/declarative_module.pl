@@ -190,7 +190,8 @@ calc_activation(_,_) <=> true.
 base_level_part(_,Time,B,A) ==>
   var(A), var(B), Time =\= 0 |
   write('komisch'),nl,
-  B is Time ** (-0.5).
+  get_conf(bll,D), % decay parameter
+  B is Time ** (-D).
   
 base_level_part(_,Time,B,A) ==>
   var(A), var(B), Time =:= 0 |
