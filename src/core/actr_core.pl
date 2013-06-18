@@ -1,4 +1,4 @@
-:- module(chr_actr,[fire/0,do_buffer_request/2,do_buffer_change/2,do_buffer_clear/1]).
+:- module(chr_actr,[fire/0,do_buffer_request/2,do_buffer_change/2,do_buffer_clear/1,set_production_utility/2]).
 :- use_module(library(chr)).
 
 :- use_module('scheduler.pl').
@@ -29,3 +29,22 @@ context([nil]) <=> true.
 context(C1),context(C2) <=> append(C1,C2,C), context(C).
 context(C), collect_context(Context) <=> Context = C.  
 
+:- chr_constraint set_production_utility/2, production_utility/2, conflict_set/1, apply_rule/1.
+
+set_production_utility(P,U), production_utility(P,_) <=> 
+  production_utility(P,U).
+  
+set_production_utility(P,U) <=> 
+  production_utility(P,U).
+  
+collect @ conflict_set(L1), conflict_set(L2) <=>
+  append(L1,L2,L), 
+  conflict_set(L).
+
+conflict_set([]) <=> write('No rule'),nl,
+  true.
+choose @ conflict_set([P|Ps]) <=>
+  write(conflict-set:[P|Ps]),nl,
+  apply_rule(P).
+  
+apply_rule(P) ==> write('firing rule '),write(P),nl.

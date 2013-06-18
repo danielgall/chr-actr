@@ -65,7 +65,8 @@ compile_structure(production_rule(production_name(Name), LHS, RHS)) <=>
   compile_structure2(RHS, ResRHS),
   end_of_block,
   append(ResRHS,[conflict_resolution],Body),
-  chrl(Name, Head,[fire],Guard,Body).
+  chrl(delay-Name, [fire|Head],[],Guard,[conflict_set([Name])]),
+  chrl(Name, Head,[fire,apply_rule(Name)],Guard,Body).
 
 % LHS
 %%  
