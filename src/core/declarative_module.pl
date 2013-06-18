@@ -163,6 +163,7 @@ get_max(MN,MA), threshold(RT) <=>
 %
 
 % save presentation time of chunk
+identical(C1,C2), present(chunk(C2,_,_)) <=> present(C1). % when chunks have been merged: strengthen the old chunk (since the new chunk is not available any more).
 present(chunk(Name,_,_)) <=> get_now(Time),presentation(Name,Time).
 
 :- chr_constraint context/2.
