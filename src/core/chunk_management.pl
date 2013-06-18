@@ -85,8 +85,9 @@ identical(C,C:new) <=> true.
 add_chunk(nil) <=> true.
 
 % first check, if identical chunk exists
-add_chunk(C) ==> 
-  check_identical_chunks(C).
+add_chunk(chunk(C,T,S)) ==> 
+  T \== chunk | % do not check chunks of special type chunk, which has no slots. %% TODO: maybe dont check chunks with no slots generally
+  check_identical_chunks(chunk(C,T,S)).
   
 % initialize all slots with nil. This leads to complete chunk definitions in store. Values that are not set stay nil.
 add_chunk(chunk(Name,Type, _)), chunk_type_has_slot(Type,S) ==> 
