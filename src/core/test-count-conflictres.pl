@@ -20,4 +20,4 @@ lisp_adddm([[b,isa,count-order,first,1,second,2],[c,isa,count-order,first,2,seco
 [5,isa,chunk],
 [6,isa,chunk],
 [first-goal,isa,count-from,start,2,end,4]]),lisp_goalfocus([first-goal]),lisp_spp([start,:,u,8]),lisp_spp([increment,:,reward,15]),now(0),conflict_resolution,nextcyc.
-no-rule@fire<=>true|no_rule.
+no-rule@fire==>true|conflict_set([]).

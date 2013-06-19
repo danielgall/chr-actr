@@ -262,7 +262,7 @@ compile_structure2(slot_rhs(slot_variable_pair(slot(S),variable(V))),R) <=>
    
 
 footers :-
-  chrl(no-rule,[],[fire],[],[no_rule]).
+  chrl(no-rule,[fire],[],[],[conflict_set([])]).
    
   
 %

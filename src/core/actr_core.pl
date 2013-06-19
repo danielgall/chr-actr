@@ -49,11 +49,12 @@ find-max-utility @ production_utility(P1,U1), production_utility(P2,U2) \ confli
 choose @ conflict_set(P) <=>
   apply_rule(P).
   
-apply_rule(P) ==> write('firing rule '),write(P),nl.
+apply_rule(P) ==> P \== [] | write('firing rule '),write(P),nl.
 
-apply_rule(P) ==> get_now(Now), to_reward(P,Now).
+apply_rule(P) ==> P \== [] | get_now(Now), to_reward(P,Now).
 
 apply_rule(P), reward(P,R) ==>
+  P \== [] |
   trigger_reward(R),
   write('reward triggered thanks to rule '),
   write(P),nl. % TODO calc reward
@@ -77,3 +78,5 @@ calc_reward(R,FireTime,Reward) :-
   Reward is R - (Now-FireTime).
   
 trigger_reward(R) <=> true. % no more rules to reward
+
+apply_rule([]), fire <=> no_rule.
