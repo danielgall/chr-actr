@@ -28,9 +28,15 @@
 nextcyc <=> de_q(Evt), call_event(Evt).
 
 % no event in queue -> do nothing and remove current time
-call_event(nil), now(_) <=> write('Hello'),nl,true.
+call_event(nil), now(_) <=> true.
 
-call_event(q(Time,Priority,Evt)), now(Now) <=> Now =< Time | write(Now:Time:Priority),now(Time),write(yeah:Time),nl,write(' ... '),write('calling event: '), write(Evt),nl,call(Evt),nextcyc.
+call_event(q(Time,Priority,Evt)), now(Now) <=> 
+  Now =< Time | 
+  write(Now:Time:Priority),
+  now(Time),
+  write(' ... '),write('calling event: '), write(Evt),nl,
+  call(Evt),
+  nextcyc.
 
 % if a production rule has been fired and has finished its actions (ie. added them to event queue), next conflict_resolution is scheduled,
 % because procedural module is free now. The time of the conflict_resolution is now. Priority is low, because first the actions of the performed production rule, that take place now, should be performed, before next production is chosen.
@@ -44,4 +50,6 @@ no_rule <=> write('No rule matches -> Schedule next conflict resolution event'),
 
 :- chr_constraint get_now/1.
 
-now(Now) \ get_now(T) <=> T = Now,write(nowww:Now),nl.
+now(Now) \ get_now(T) <=> 
+  T = Now.
+  %write(nowww:Now),nl.

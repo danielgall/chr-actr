@@ -29,7 +29,7 @@ context([nil]) <=> true.
 context(C1),context(C2) <=> append(C1,C2,C), context(C).
 context(C), collect_context(Context) <=> Context = C.  
 
-:- chr_constraint set_production_utility/2, production_utility/2, set_default_utilities/1, conflict_set/1, apply_rule/1.
+:- chr_constraint set_production_utility/2, production_utility/2, set_default_utilities/1, conflict_set/1, apply_rule/1, reward/2, set_reward/2, trigger_reward/1, to_reward/2.
 
 set_production_utility(P,U), production_utility(P,_) <=> 
   production_utility(P,U).
@@ -50,3 +50,30 @@ choose @ conflict_set(P) <=>
   apply_rule(P).
   
 apply_rule(P) ==> write('firing rule '),write(P),nl.
+
+apply_rule(P) ==> get_now(Now), to_reward(P,Now).
+
+apply_rule(P), reward(P,R) ==>
+  trigger_reward(R),
+  write('reward triggered thanks to rule '),
+  write(P),nl. % TODO calc reward
+  
+set_reward(P,R), reward(P,_) <=>
+  reward(P,R).
+  
+set_reward(P,R) <=>
+  reward(P,R).
+  
+trigger_reward(R), production_utility(P,U) \ to_reward(P,FireTime) <=>
+  calc_reward(R,FireTime,Reward),
+  get_conf(alpha,Alpha),
+  NewU is U + Alpha*(Reward-U),
+  set_production_utility(P,NewU),
+  write('triggered reward for rule: '),write(P),nl,
+  write(reward:Reward),write(u:U),write(nu:NewU),nl.
+  
+calc_reward(R,FireTime,Reward) :-
+  get_now(Now),
+  Reward is R - (Now-FireTime).
+  
+trigger_reward(R) <=> true. % no more rules to reward

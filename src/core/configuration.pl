@@ -19,3 +19,4 @@ set_conf(Var,Val) <=> configuration(Var,Val),write(config-set-to:Var:Val),nl.
 % standard values (if no values have been set)
 get_conf(rt,_) ==> set_conf(rt,-0.5).
 get_conf(bll,_) ==> set_conf(bll,0.5).
+get_conf(alpha,_) ==> set_conf(alpha,0.2).

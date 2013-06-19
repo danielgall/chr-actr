@@ -55,4 +55,8 @@
 )
 
 (goal-focus first-goal)
+
+(spp start :u 8)
+(spp increment :reward 15)
+
 )

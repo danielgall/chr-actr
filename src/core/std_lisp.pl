@@ -1,5 +1,5 @@
 :- use_module(library(chr)).
-:- chr_constraint lisp_chunktype/1,lisp_adddm/1,lisp_goalfocus/1.
+:- chr_constraint lisp_chunktype/1,lisp_adddm/1,lisp_goalfocus/1,lisp_spp/1.
 
 lisp_chunktype([Type|Slots]) <=>
   add_chunk_type(Type,Slots),
@@ -22,3 +22,18 @@ gen_slot_value_pairs([S,V|Slots],[(S,V)|Res]) :-
   
 lisp_goalfocus([Chunk]) <=>
   goal_focus(Chunk).
+
+lisp_spp([]) <=>
+  true.  
+  
+lisp_spp([_]) <=>
+  true.
+  
+lisp_spp([P,:,u,U|Rest]) <=>
+  set_production_utility(P,U),
+  lisp_spp([P|Rest]).
+  
+lisp_spp([P,:,reward,R|Rest]) <=>
+  set_reward(P,R),
+  lisp_spp([P|Rest]).
+  

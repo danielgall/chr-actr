@@ -104,11 +104,11 @@ module_request(retrieval,nil,_,ResChunk,ResState,RelTime) <=> ResChunk = nil,Res
 module_request(retrieval,chunk(Name,Type,Slots),Context,ResChunk,ResState,RelTime) <=> 
   find_chunk(Name,Type,Slots),
   collect_matches(Res),
-  write('Matches: '),write(Res),nl,
+  %write('Matches: '),write(Res),nl,
   calc_activations(Res,Context),
   % find threshold for maximum check
   get_conf(rt,RT),
-  write(rt:RT),nl,
+  %write(rt:RT),nl,
   threshold(RT),
   get_max(MaxChunk,MaxAct),
   return_chunk(MaxChunk,ResChunk),
@@ -172,7 +172,11 @@ present(chunk(Name,_,_)) <=> get_now(Time),presentation(Name,Time).
 :- chr_constraint context/2.
 
 context([],Assoc) <=> Assoc=0.
-sji(C,Sji) \ context([C|Cs],Assoc) <=> context(Cs,Assoc1), write(c:C:cs:Cs:assoc1:Assoc1),nl,Assoc is Assoc1+Sji,write(assoc:Assoc),nl.
+sji(C,Sji) \ context([C|Cs],Assoc) <=> 
+  context(Cs,Assoc1), 
+  %write(c:C:cs:Cs:assoc1:Assoc1),nl,
+  Assoc is Assoc1+Sji.
+  %write(assoc:Assoc),nl.
 
 calc_activations([],_) <=>
   true.
@@ -193,13 +197,13 @@ calc_activation(_,_) <=> true.
 
 base_level_part(_,Time,B,A) ==>
   var(A), var(B), Time =\= 0 |
-  write('komisch'),nl,
+  %write('komisch'),nl,
   get_conf(bll,D), % decay parameter
   B is Time ** (-D).
   
 base_level_part(_,Time,B,A) ==>
   var(A), var(B), Time =:= 0 |
-  write('komisch1'),nl,
+  %write('komisch1'),nl,
   B=0.
 
 base_level_part(C,_,B1,A), base_level_part(C,_,B2,A) <=>
@@ -214,5 +218,5 @@ base_level_part(_,_,B,A) <=>
 
 base_level_part(_,_,B,A) <=>
   var(A),nonvar(B), B == 0 |
-  write('somehow B is 0...'),nl,
+  %write('somehow B is 0...'),nl,
   A is 0.
