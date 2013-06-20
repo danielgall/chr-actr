@@ -25,10 +25,10 @@
 % now(Now), fire ==> write(Now),write(' ... conflict resolution'),nl.
 
 % After an event has been performed, nextcyc is triggered. This leads to the next event in the queue to be performed.
-nextcyc <=> de_q(Evt), call_event(Evt).
+nextcyc <=> write('nextcyc'),nl, de_q(Evt), write(evt:Evt),nl, call_event(Evt).
 
 % no event in queue -> do nothing and remove current time
-call_event(nil), now(_) <=> true.
+call_event(nil) \ now(_) <=> write('Hello'),nl.
 
 call_event(q(Time,Priority,Evt)), now(Now) <=> 
   Now =< Time | 
@@ -36,6 +36,7 @@ call_event(q(Time,Priority,Evt)), now(Now) <=>
   now(Time),
   write(' ... '),write('calling event: '), write(Evt),nl,
   call(Evt),
+  write('added nextcyc because of call_event: '),write(Evt),nl,
   nextcyc.
 
 % if a production rule has been fired and has finished its actions (ie. added them to event queue), next conflict_resolution is scheduled,
@@ -46,7 +47,7 @@ now(Time) \ conflict_resolution <=> add_q(Time,0,do_conflict_resolution),write('
 do_conflict_resolution <=> write('FIRE'),nl,fire.%TODO add proper conflict resolution mechanism
 
 % no rule matched
-no_rule <=> write('No rule matches -> Schedule next conflict resolution event'),nl,after_next_event(do_conflict_resolution).
+no_rule <=> write('No rule matches -> Schedule next conflict resolution event'),nl,after_next_event(do_conflict_resolution), write('added nextcyc because of no_rule'),nl.
 
 :- chr_constraint get_now/1.
 

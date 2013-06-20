@@ -11,6 +11,7 @@
 :- chr_constraint (-->)/2, add_q/3, de_q/1, after_next_event/1.
 
 add_q(Time,Priority,Evt) <=>
+  write('added event '),write(Evt:Time:Priority),nl,
   s --> q(Time,Priority,Evt).
 
  
