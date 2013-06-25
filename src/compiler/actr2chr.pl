@@ -72,7 +72,7 @@ compile_structure(production_rule(production_name(Name), LHS, RHS)) <=>
   end_of_block,
   append(ResRHS,[conflict_resolution],Body),
   chrl(delay-Name, [fire|Head],[],Guard,[conflict_set(Name)]),
-  chrl(Name, Head,[fire,apply_rule(Name)],Guard,Body),
+  chrl(Name, Head,[apply_rule(Name)],Guard,Body),
   production(Name).
 
 % LHS
@@ -262,7 +262,7 @@ compile_structure2(slot_rhs(slot_variable_pair(slot(S),variable(V))),R) <=>
    
 
 footers :-
-  chrl(no-rule,[fire],[],[],[conflict_set([])]).
+  chrl(no-rule,[],[fire],[],[conflict_set([]),choose]).
    
   
 %
