@@ -75,32 +75,51 @@
 
 % add_chunk_type(ChunkTypeName, [SlotNames]).
 
+:- chr_constraint init(+).
+
+% Observer interface:
+:- chr_constraint update/0.
+
 %%%%%%%%%
 % Rules %
 %%%%%%%%%
 
-%%% IMPORTANT TODO: ADD CHUNK MERGING!!!!!!!!!!!!! %%%%%
+init(Buffer) <=>
+  Buffer=retrieval |
+  add_config_observer(declarative_module,esc). % observe esc setting
+  
+update <=>
+  get_conf(esc,ESC),
+  set_subsymbolic(ESC).
+
+%%%%
 
 add_dm(ChunkDef) <=> add_chunk(ChunkDef), present(ChunkDef), write('!!!!!!added chunk '),write(ChunkDef),nl,nl.
 
 % Calculate Fan of each chunk
-:- chr_constraint fan/2, calc_sji/3.
+:- chr_constraint fan/2, calc_sji/3, subsymbolic/0, set_subsymbolic/1.
 
-chunk(C,_) ==> fan(C,1).
-chunk_has_slot(_,_,C), chunk(C,_) ==> fan(C,1).
+set_subsymbolic(t), subsymbolic <=> subsymbolic.
+set_subsymbolic(t) <=> subsymbolic.
 
-fan(C,F1), fan(C,F2) <=> F is F1+F2, fan(C,F).
+set_subsymbolic(nil), subsymbolic <=> true.
+set_subsymbolic(nil) <=> true.
+
+subsymbolic, chunk(C,_) ==> fan(C,1).
+subsymbolic, chunk_has_slot(_,_,C), chunk(C,_) ==> fan(C,1).
+
+subsymbolic \ fan(C,F1), fan(C,F2) <=> F is F1+F2, fan(C,F).
 
 
 % Calculate S_ji
-fan(J,F), chunk(I,_), chunk_has_slot(I,_,J) \ calc_sji(J,I,Sji) <=> I \== J | Sji is 2 - log(F).
+subsymbolic, fan(J,F), chunk(I,_), chunk_has_slot(I,_,J) \ calc_sji(J,I,Sji) <=> I \== J | Sji is 2 - log(F).
 calc_sji(_,_,Sji) <=> Sji=0.
 
 chunk(Name,Type) \ module_request(goal,chunk(Name,Type,_),_,ResChunk,ResState,RelTime) <=> return_chunk(Name,ResChunk), ResState=free, RelTime=0.
 module_request(goal,_,_,ResChunk,ResState,RelTime) <=> ResChunk = nil, ResState=error, RelTime=0. % chunk not found
 
 module_request(retrieval,nil,_,ResChunk,ResState,RelTime) <=> ResChunk = nil,ResState=free,RelTime=1. %TODO: Add proper time (activation)
-module_request(retrieval,chunk(Name,Type,Slots),Context,ResChunk,ResState,RelTime) <=> 
+subsymbolic \ module_request(retrieval,chunk(Name,Type,Slots),Context,ResChunk,ResState,RelTime) <=> 
   find_chunk(Name,Type,Slots),
   collect_matches(Res),
   %write('Matches: '),write(Res),nl,
@@ -113,6 +132,18 @@ module_request(retrieval,chunk(Name,Type,Slots),Context,ResChunk,ResState,RelTim
   return_chunk(MaxChunk,ResChunk),
   get_state(ResChunk,ResState),
   calc_time(MaxAct,RelTime).
+  
+module_request(retrieval,chunk(Name,Type,Slots),Context,ResChunk,ResState,RelTime) <=> 
+  find_chunk(Name,Type,Slots),
+  collect_matches(Res),
+  %write('Matches: '),write(Res),nl,
+  first(Res,Chunk),
+  return_chunk(Chunk,ResChunk),
+  get_state(ResChunk,ResState),
+  RelTime=1.
+
+first([],nil).
+first([X|Xs],X).  
   
 calc_time(Act,ResTime) :-
   get_conf(lf,F),

@@ -70,8 +70,9 @@ buffer(BufName, _, _) \ add_buffer(BufName, _) <=> false. % buffers must have di
 
 % create empty buffer
 add_buffer(BufName, ModName) <=> 
-buffer(BufName, ModName, nil),
-buffer_state(BufName,free). 
+  ModName:init(BufName), % call init function of module
+  buffer(BufName, ModName, nil),
+  buffer_state(BufName,free). 
 
 % Schedule buffer_request
 buffer(BufName, ModName, _) \ buffer_request(BufName, Chunk) <=> %% todo: check for free buffer!!
