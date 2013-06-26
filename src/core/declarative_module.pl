@@ -21,12 +21,12 @@
 
 % Chunk Activation
 
-:- chr_constraint base_level_part/4, calc_activation/2, calc_activations/2, max/2, get_max/2.
-
-:- chr_constraint present(+chunk_def).
-
 :- chr_constraint presentation(+,+).
 % presentation(Chunk, Time)
+% represents a presentation of chunk Chunk at time Time.
+% A presentation can be triggered by using present/1.
+% This is usually the case, when a chunk enters the declarative memory.
+% Consider chunk merging!
 
 
 % Helper:
@@ -61,9 +61,27 @@
 :- chr_constraint collect_matches(-).
 % collects all the elements in a match_set constraint
 
-
-
 :- chr_constraint match_set(+list(any)).
+
+% Chunk Activation
+
+:- chr_constraint max/2, get_max/2.
+
+:- chr_constraint present(+chunk_def).
+
+:- chr_constraint calc_activation/2.
+:- chr_constraint base_level_part(+,+,?,-).
+% base_level_part(Chunk,Time,InterimResult,BaseLevelActivation).
+% A part of the base level calculation of chunk Chunk.
+% all such parts of a chunk are summed up and the log of the sum is the BaseLevelActivation.
+% call:
+% If base level activation of Chunk C should be calculated, each presentation of a chunk will 
+% add a base level part. Time is set to the time from this presentation to now.
+% For every part, the InterimResult is set to that time difference Time^(-D), where D is the decay parameter.
+% then all base level parts are summed up and in the end the logarithm of the sum is calculated.
+% This result is bound to BaseLevelActivation.
+
+:- chr_constraint calc_activations/2.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -79,16 +97,22 @@
 
 % Observer interface:
 :- chr_constraint update/0.
+% this method is called by the observable, where this module has been registered by using add_config_observer.
 
 %%%%%%%%%
 % Rules %
 %%%%%%%%%
 
-init(Buffer) <=>
+%%% implmented interfaces %%%
+
+% constructor, called by buffers.pl on add_buffer. 
+% Adds observer for esc setting (esc determines if subsymbolic layer is used)
+init(Buffer) <=> % implements interface Module
   Buffer=retrieval |
   add_config_observer(declarative_module,esc). % observe esc setting
-  
-update <=>
+
+% configuration variable has changed  
+update <=> % implements interface Observer
   get_conf(esc,ESC),
   set_subsymbolic(ESC).
 
@@ -96,22 +120,24 @@ update <=>
 
 add_dm(ChunkDef) <=> add_chunk(ChunkDef), present(ChunkDef), write('!!!!!!added chunk '),write(ChunkDef),nl,nl.
 
-% Calculate Fan of each chunk
 :- chr_constraint fan/2, calc_sji/3, subsymbolic/0, set_subsymbolic/1.
 
+% subsymbolic layer turned on -> add subsymbolic constraint
 set_subsymbolic(t), subsymbolic <=> subsymbolic.
 set_subsymbolic(t) <=> subsymbolic.
 
+% subsymbolic layer turned off -> remove subsymbolic constraint
 set_subsymbolic(nil), subsymbolic <=> true.
 set_subsymbolic(nil) <=> true.
 
+% Calculate Fan of each chunk, if subsymbolic layer is turned on
 subsymbolic, chunk(C,_) ==> fan(C,1).
 subsymbolic, chunk_has_slot(_,_,C), chunk(C,_) ==> fan(C,1).
 
 subsymbolic \ fan(C,F1), fan(C,F2) <=> F is F1+F2, fan(C,F).
 
 
-% Calculate S_ji
+% Calculate S_ji, if subsymbolic layer is turned on and calc_sji is in store. Bind calculated value to Sji in calc_sji as return value.
 subsymbolic, fan(J,F), chunk(I,_), chunk_has_slot(I,_,J) \ calc_sji(J,I,Sji) <=> I \== J | Sji is 2 - log(F).
 calc_sji(_,_,Sji) <=> Sji=0.
 
@@ -222,31 +248,33 @@ calc_activations([C|Cs],Context) <=>
   write(C:A),nl,
   max(C,A).
   
+% for each presentation of chunk C, a base level activation part has to be calculated. These parts are put together as a sum for the actual base level activation of chunk C.
 presentation(C,PTime), calc_activation(C,A) ==> get_now(Now), Time is Now - PTime, base_level_part(C,Time,_,A).
 calc_activation(_,_) <=> true.
 
+% if A and B not set: set B to Time^(-D). Time is the time since the presentation of this base_level_part
 base_level_part(_,Time,B,A) ==>
   var(A), var(B), Time =\= 0 |
-  %write('komisch'),nl,
   get_conf(bll,D), % decay parameter
   B is Time ** (-D).
-  
+
+% if A and B not set and Time is 0: set B to 0 % TODO: really??
 base_level_part(_,Time,B,A) ==>
   var(A), var(B), Time =:= 0 |
-  %write('komisch1'),nl,
   B=0.
 
+% collect base level parts and add them together. Only if Bs are set
 base_level_part(C,_,B1,A), base_level_part(C,_,B2,A) <=>
   nonvar(B1), nonvar(B2), var(A) |
   B is B1+B2,
   base_level_part(C,_,B,A).
     
-  
+% if B is set, A is not set and there are no more base_level_parts of this chunk: calculate actual base level activation and store it in A. Only possible if B is =\= 0.
 base_level_part(_,_,B,A) <=>
   var(A),nonvar(B), B =\= 0 |
   A is log(B).
-
+  
+% if B is set to 0, A is not set and there are no more base_level_parts of this chunk: set actual base level activation to 0 % TODO really??
 base_level_part(_,_,B,A) <=>
   var(A),nonvar(B), B == 0 |
-  %write('somehow B is 0...'),nl,
   A is 0.
