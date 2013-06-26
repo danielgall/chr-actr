@@ -86,4 +86,4 @@ calc_reward(R,FireTime,Reward) :-
   get_now(Now),
   Reward is R - (Now-FireTime).
   
-trigger_reward(R) <=> true. % no more rules to reward
+trigger_reward(_) <=> true. % no more rules to reward

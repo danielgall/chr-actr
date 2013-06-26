@@ -133,7 +133,7 @@ subsymbolic \ module_request(retrieval,chunk(Name,Type,Slots),Context,ResChunk,R
   get_state(ResChunk,ResState),
   calc_time(MaxAct,RelTime).
   
-module_request(retrieval,chunk(Name,Type,Slots),Context,ResChunk,ResState,RelTime) <=> 
+module_request(retrieval,chunk(Name,Type,Slots),_,ResChunk,ResState,RelTime) <=> 
   find_chunk(Name,Type,Slots),
   collect_matches(Res),
   %write('Matches: '),write(Res),nl,
@@ -143,7 +143,7 @@ module_request(retrieval,chunk(Name,Type,Slots),Context,ResChunk,ResState,RelTim
   RelTime=1.
 
 first([],nil).
-first([X|Xs],X).  
+first([X|_],X).  
   
 calc_time(Act,ResTime) :-
   get_conf(lf,F),
