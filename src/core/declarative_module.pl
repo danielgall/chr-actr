@@ -81,21 +81,20 @@
 
 %%% IMPORTANT TODO: ADD CHUNK MERGING!!!!!!!!!!!!! %%%%%
 
-add_dm(ChunkDef) <=> add_chunk(ChunkDef), present(ChunkDef).
+add_dm(ChunkDef) <=> add_chunk(ChunkDef), present(ChunkDef), write('!!!!!!added chunk '),write(ChunkDef),nl,nl.
 
 % Calculate Fan of each chunk
-:- chr_constraint fan/2, sji/2, set_sji/2.
+:- chr_constraint fan/2, calc_sji/3.
 
 chunk(C,_) ==> fan(C,1).
 chunk_has_slot(_,_,C), chunk(C,_) ==> fan(C,1).
 
 fan(C,F1), fan(C,F2) <=> F is F1+F2, fan(C,F).
 
-% Calculate S_ji
-fan(C,F) ==> Sji is 2 - log(F), set_sji(C,Sji).
 
-set_sji(C,Sji), sji(C,_) <=> sji(C,Sji).
-set_sji(C,Sji) <=> sji(C,Sji).
+% Calculate S_ji
+fan(J,F), chunk(I,_), chunk_has_slot(I,_,J) \ calc_sji(J,I,Sji) <=> I \== J | Sji is 2 - log(F).
+calc_sji(_,_,Sji) <=> Sji=0.
 
 chunk(Name,Type) \ module_request(goal,chunk(Name,Type,_),_,ResChunk,ResState,RelTime) <=> return_chunk(Name,ResChunk), ResState=free, RelTime=0.
 module_request(goal,_,_,ResChunk,ResState,RelTime) <=> ResChunk = nil, ResState=error, RelTime=0. % chunk not found
@@ -169,21 +168,21 @@ get_max(MN,MA), threshold(RT) <=>
 identical(C1,C2), present(chunk(C2,_,_)) <=> present(C1). % when chunks have been merged: strengthen the old chunk (since the new chunk is not available any more).
 present(chunk(Name,_,_)) <=> get_now(Time),presentation(Name,Time).
 
-:- chr_constraint context/2.
+:- chr_constraint context/3.
 
-context([],Assoc) <=> Assoc=0.
-sji(C,Sji) \ context([C|Cs],Assoc) <=> 
-  context(Cs,Assoc1), 
-  %write(c:C:cs:Cs:assoc1:Assoc1),nl,
+context(_,[],Assoc) <=> Assoc=0.
+context(I,[J|Js],Assoc) <=> 
+  calc_sji(J,I,Sji),
+  write(sji:J:I:Sji),nl,nl,
+  context(I,Js,Assoc1), 
   Assoc is Assoc1+Sji.
-  %write(assoc:Assoc),nl.
 
 calc_activations([],_) <=>
   true.
 calc_activations([C|Cs],Context) <=> 
   calc_activation(C,B), 
   calc_activations(Cs,Context),
-  context(Context,Assoc),
+  context(C,Context,Assoc),
   length(Context,N),
   write(context:Context:N),nl,
   Assoc1 is 1/N * Assoc,
