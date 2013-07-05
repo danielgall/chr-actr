@@ -73,8 +73,13 @@ add_chunks([C|Cs]) <=> add_chunk(C), add_chunks(Cs).
 %
 % Add a chunk to memory
 
-chunk(Name,Type) \ add_chunk(chunk(Name,Type,Slots))
-  <=> add_chunk(chunk(Name:new,Type,Slots)).
+add_chunk(chunk(Name,Type,Slots)) \ chunk(Name,Type) <=> % delete chunk of Type chunk, if real chunk is added
+  Type == chunk |
+  true.
+
+chunk(Name,Type) \ add_chunk(chunk(Name,Type,Slots)) <=>
+  Type \== chunk |
+  add_chunk(chunk(Name:new,Type,Slots)).
 
 reduce @ identical(C1,C2) \ identical(C2,C3) <=> identical(C1,C3).
   
@@ -100,8 +105,20 @@ add_chunk(chunk(Name,Type, Slots)) <=>
   do_add_chunk(chunk(Name,Type,Slots)).
 
 do_add_chunk(chunk(Name, Type, [])) <=> chunk(Name, Type). % base case
-do_add_chunk(chunk(Name, Type, [(S,V)|Rest])), chunk_has_slot(Name,S,nil)  <=> % overwrite slots with empty values
+
+chunk(V,_) \ do_add_chunk(chunk(Name, Type, [(S,V)|Rest])), chunk_has_slot(Name,S,nil)  <=> % overwrite slots with empty values
   chunk_has_slot(Name, S,V), 
+  do_add_chunk(chunk(Name,Type,Rest)).
+  
+do_add_chunk(chunk(Name, Type, [(S,V)|Rest])), chunk_has_slot(Name,S,nil)  <=> % overwrite slots with empty values
+  V == nil | % do not add chunk(nil,chunk)
+  chunk_has_slot(Name, S,V), 
+  do_add_chunk(chunk(Name,Type,Rest)).  
+  
+do_add_chunk(chunk(Name, Type, [(S,V)|Rest])), chunk_has_slot(Name,S,nil)  <=> % overwrite slots with empty values
+  V \== nil |
+  chunk_has_slot(Name, S,V), 
+  chunk(V,chunk), % no chunk for slot value found => add chunk of type chunk
   do_add_chunk(chunk(Name,Type,Rest)).
 
 %
