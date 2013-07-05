@@ -30,12 +30,10 @@ observer(Module,Var), set_conf(Var,_) ==> notify(Module,Var). % collect all modu
 
 set_conf(Var,Val), configuration(Var,_) <=> 
   configuration(Var,Val),
-  write(config-set-to:Var:Val),nl,
   notify_all(Var). % variable has been set -> perform pending notifications
 
 set_conf(Var,Val) <=> 
   configuration(Var,Val),
-  write(config-set-to:Var:Val),nl,
   notify_all(Var). % variable has been set -> perform pending notifications
 
 notify_all(Var), notify(Module,Var) ==> Module:update. % perform all pending notifications

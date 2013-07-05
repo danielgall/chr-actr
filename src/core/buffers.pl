@@ -76,6 +76,8 @@ add_buffer(BufName, ModName) <=>
 
 % Schedule buffer_request
 buffer(BufName, ModName, _) \ buffer_request(BufName, Chunk) <=> %% todo: check for free buffer!!
+  write('Scheduled buffer request '),
+  write(BufName),nl,
   get_now(Now),
   buffer_state(BufName,busy),
   do_buffer_clear(BufName), % clear buffer immediately
@@ -84,8 +86,6 @@ buffer(BufName, ModName, _) \ buffer_request(BufName, Chunk) <=> %% todo: check 
   performed_request(BufName, ResChunk, ResState), % save result of request
   Time is Now + RelTime, 
   add_q(Time, 0, do_buffer_request(BufName, Chunk)).
-
-  % TODO Buffer states noch nicht korrekt?? Tests…
   
 % Handle buffer_request
 do_buffer_request(BufName, _), buffer(BufName, ModName, _), buffer_state(BufName,_), performed_request(BufName, ResChunk, ResState) <=>  %% todo: check for free buffer!!
@@ -103,7 +103,6 @@ do_buffer_request(BufName, _), buffer(BufName, ModName, _), buffer_state(BufName
 % Schedule buffer_change
 buffer_change(BufName, Chunk) <=> 
   get_now(Now),
-  write(now:Now),nl,
   Time is Now + 0, 
   add_q(Time, 100, do_buffer_change(BufName, Chunk)).
 

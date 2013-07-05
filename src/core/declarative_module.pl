@@ -110,6 +110,9 @@
 init(Buffer) <=> % implements interface Module
   Buffer=retrieval |
   add_config_observer(declarative_module,esc). % observe esc setting
+  
+init(goal) <=>
+  true.
 
 % configuration variable has changed  
 update <=> % implements interface Observer
@@ -118,7 +121,7 @@ update <=> % implements interface Observer
 
 %%%%
 
-add_dm(ChunkDef) <=> add_chunk(ChunkDef), present(ChunkDef), write('!!!!!!added chunk '),write(ChunkDef),nl,nl.
+add_dm(ChunkDef) <=> add_chunk(ChunkDef), present(ChunkDef).
 
 :- chr_constraint fan/2, calc_sji/3, subsymbolic/0, set_subsymbolic/1.
 
@@ -198,23 +201,20 @@ max(_,A1) \ max(_,A2) <=>
 get_max(MN,MA), max(N,A), threshold(RT) <=> 
   A >= RT | 
   MN=N,
-  MA=A,
-  write(max:MN:MA),nl.
+  MA=A.
   
 get_max(MN,MA), max(_,A), threshold(RT) <=> 
   A < RT | 
   MN=nil,
   get_conf(rt,RT), % set activation to threshold if no chunk has activation higher than threshold
   MA=RT,
-  write('No chunk has high enough threshold'),nl,
-  write(max:MN:MA),nl.
+  write('No chunk has high enough threshold'),nl.
   
 get_max(MN,MA), threshold(RT) <=>
   MN=nil,
   % set activation to threshold if no chunk matches
   MA=RT,
-  write('No chunk matches.'),nl,
-  write(max:MN:MA),nl.
+  write('No chunk matches.'),nl.
 
 
 %
@@ -230,7 +230,6 @@ present(chunk(Name,_,_)) <=> get_now(Time),presentation(Name,Time).
 context(_,[],Assoc) <=> Assoc=0.
 context(I,[J|Js],Assoc) <=> 
   calc_sji(J,I,Sji),
-  write(sji:J:I:Sji),nl,nl,
   context(I,Js,Assoc1), 
   Assoc is Assoc1+Sji.
 
@@ -241,11 +240,8 @@ calc_activations([C|Cs],Context) <=>
   calc_activations(Cs,Context),
   context(C,Context,Assoc),
   length(Context,N),
-  write(context:Context:N),nl,
   Assoc1 is 1/N * Assoc,
   A is B + Assoc1,
-  write('Activation Chunk '),
-  write(C:A),nl,
   max(C,A).
   
 % for each presentation of chunk C, a base level activation part has to be calculated. These parts are put together as a sum for the actual base level activation of chunk C.

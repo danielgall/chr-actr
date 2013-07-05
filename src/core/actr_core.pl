@@ -23,7 +23,7 @@ output(X) <=> write(output:X),nl.  % reference p. 166: eval output, bind calls o
 :- chr_constraint get_context/1, context/1, collect_context/1.
 
 chunk_has_slot(_,_,V), get_context(_) ==> context([V]).
-get_context(Context) <=> write('context'),collect_context(Context). % no more slots => collect results
+get_context(Context) <=> collect_context(Context). % no more slots => collect results
 
 context([nil]) <=> true.
 context(C1),context(C2) <=> append(C1,C2,C), context(C).
@@ -42,7 +42,7 @@ set_default_utilities([P|Ps]) <=>
   set_production_utility(P,5),
   set_default_utilities(Ps).
 
-conflict_set(_) \ conflict_set([]) <=> write('clash'),nl,true.
+conflict_set(_) \ conflict_set([]) <=> true.
   
 find-max-utility @ production_utility(P1,U1), production_utility(P2,U2) \ conflict_set(P1), conflict_set(P2) <=>
   U1 >= U2 |
@@ -65,8 +65,8 @@ apply_rule(P) ==> P \== [] | get_now(Now), to_reward(P,Now).
 apply_rule(P), reward(P,R) ==>
   P \== [] |
   trigger_reward(R),
-  write('reward triggered thanks to rule '),
-  write(P),nl. % TODO calc reward
+  write('reward triggered by rule '),
+  write(P),nl.
   
 set_reward(P,R), reward(P,_) <=>
   reward(P,R).
@@ -79,8 +79,7 @@ trigger_reward(R), production_utility(P,U) \ to_reward(P,FireTime) <=>
   get_conf(alpha,Alpha),
   NewU is U + Alpha*(Reward-U),
   set_production_utility(P,NewU),
-  write('triggered reward for rule: '),write(P),nl,
-  write(reward:Reward),write(u:U),write(nu:NewU),nl.
+  write('triggered reward for rule: '),write(P),nl.
   
 calc_reward(R,FireTime,Reward) :-
   get_now(Now),
