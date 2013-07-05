@@ -33,7 +33,7 @@ compile_file(F) :-
 compile_structure(model(ModelName,Functions)) <=> 
   compile_structure2(Functions,Inits),
   init_utilities(Utilities),
-  Header = [set_default_utilities(Utilities),add_buffer(retrieval,declarative_module), add_buffer(goal,declarative_module)],
+  Header = [set_default_utilities(Utilities),add_buffer(retrieval,declarative_module), add_buffer(goal,declarative_module),lisp_chunktype([chunk])],
   Footer = [now(0),conflict_resolution,nextcyc],
   append(Header,Inits,L),
   append(L,Footer,ResInits),
