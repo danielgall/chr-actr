@@ -73,7 +73,7 @@ add_chunks([C|Cs]) <=> add_chunk(C), add_chunks(Cs).
 %
 % Add a chunk to memory
 
-add_chunk(chunk(Name,Type,Slots)) \ chunk(Name,Type) <=> % delete chunk of Type chunk, if real chunk is added
+add_chunk(chunk(Name,_,_)) \ chunk(Name,Type) <=> % delete chunk of Type chunk, if real chunk is added
   Type == chunk |
   true.
 
