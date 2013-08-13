@@ -178,6 +178,9 @@ calc_time(Act,ResTime) :-
   get_conf(lf,F),
   ResTime=F*exp(-Act). 
 
+% merged chunk can be found by the name of the original chunk  
+identical(C1,C2) \ find_chunk(C2,T2,Ss2)  <=> ground(C2) | find_chunk(C1,T2,Ss2).
+  
 find_chunk(N1,T1,Ss), chunk(N2,T2) ==> unifiable((N1,T1),(N2,T2),_), nonvar(Ss) | test_slots(N2,Ss), match_set([N2]).
 find_chunk(N1,T1,Ss), chunk(N2,T2) ==> unifiable((N1,T1),(N2,T2),_), var(Ss) | test_slots(N2,[]), match_set([N2]).
 find_chunk(_,_,_) <=> true.
@@ -222,8 +225,8 @@ get_max(MN,MA), threshold(RT) <=>
 %
 
 % save presentation time of chunk
-identical(C1,C2), present(chunk(C2,_,_)) <=> present(C1). % when chunks have been merged: strengthen the old chunk (since the new chunk is not available any more).
-present(chunk(Name,_,_)) <=> get_now(Time),presentation(Name,Time).
+identical(C1,C2) \ present(chunk(C2,_,_)) <=> present(C1). % when chunks have been merged: strengthen the old chunk (since the new chunk is not available any more).
+chunk(Name,_) \ present(chunk(Name,_,_)) <=> get_now(Time),presentation(Name,Time).
 
 :- chr_constraint context/3.
 

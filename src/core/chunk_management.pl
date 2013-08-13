@@ -81,9 +81,10 @@ chunk(Name,Type) \ add_chunk(chunk(Name,Type,Slots)) <=>
   Type \== chunk |
   add_chunk(chunk(Name:new,Type,Slots)).
 
-reduce @ identical(C1,C2) \ identical(C2,C3) <=> identical(C1,C3).
-  
-identical(_,C) \ add_chunk(chunk(C,_,_)) <=> true.
+reduce @ chunk(C1,_), identical(C1,C2) \ identical(C2,C3) <=> identical(C1,C3).
+
+%% TODO: delete this rule???
+%identical(_,C) \ add_chunk(chunk(C,_,_)) <=> true.
 
 % delete chunks with new name
 identical(C,C:new) <=> true.
@@ -159,7 +160,8 @@ alter_slot(Chunk,Slot,Value), chunk_has_slot(Chunk,Slot,_) <=>
   chunk_has_slot(Chunk,Slot,Value).
   
 alter_slot(Chunk,Slot,Value) <=>
-  chunk_has_slot(Chunk,Slot,Value).
+  false. % since every chunk must be described completely, Slot cannot be a slot of the type of Chunk
+  %chunk_has_slot(Chunk,Slot,Value).
 
 remove_chunk(Name) \ chunk(Name, _) <=> true.
 remove_chunk(Name) \ chunk_has_slot(Name, _, _) <=> true.

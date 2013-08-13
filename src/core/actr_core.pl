@@ -1,4 +1,4 @@
-:- module(chr_actr,[fire/0,do_buffer_request/2,do_buffer_change/2,do_buffer_clear/1,set_production_utility/2,apply_rule/1]).
+:- module(chr_actr,[fire/0,start_request/2,do_buffer_request/2,do_buffer_change/2,do_buffer_clear/1,set_production_utility/2,apply_rule/1]).
 :- use_module(library(chr)).
 
 :- use_module('scheduler.pl').

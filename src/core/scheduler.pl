@@ -33,20 +33,20 @@ call_event(nil) \ now(_) <=> write('No more events in queue. End of computation.
 call_event(q(Time,Priority,Evt)), now(Now) <=> 
   Now =< Time | 
   now(Time),
-  write(Now:Priority),
+  write(Time:Priority),
   write(' ... '),write('calling event: '), write(Evt),nl,
   call(Evt),
   nextcyc.
 
 % if a production rule has been fired and has finished its actions (ie. added them to event queue), next conflict_resolution is scheduled,
 % because procedural module is free now. The time of the conflict_resolution is now. Priority is low, because first the actions of the performed production rule, that take place now, should be performed, before next production is chosen.
-now(Time) \ conflict_resolution <=> add_q(Time,0,do_conflict_resolution).
+now(Time) \ conflict_resolution <=> add_q(Time,-10,do_conflict_resolution).
 
 % causes a matching production rule to fire
 do_conflict_resolution <=> fire.
 
 % no rule matched
-no_rule <=> write('No rule matches -> Schedule next conflict resolution event'),nl,after_next_event(do_conflict_resolution).
+no_rule <=> write('No rule matches -> Schedule next conflict resolution event'),nl,after_next_event(do_conflict_resolution).%,print_q.
 
 :- chr_constraint get_now/1.
 

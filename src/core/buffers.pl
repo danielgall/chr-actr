@@ -30,6 +30,10 @@
 
 :- chr_constraint buffer_request(+,+chunk_def).
 % buffer_request(+BufferName, +Chunk)
+% Schedules the event start_request at current time with priority 0.
+
+:- chr_constraint start_request(+,+chunk_def).
+% buffer_request(+BufferName, +Chunk)
 % Performs a module_request on the corresponding module of buffer BufName with the (possibly not fully instantiated) chunk Chunk.
 
 :- chr_constraint buffer_change(+,+chunk_def).
@@ -74,9 +78,14 @@ add_buffer(BufName, ModName) <=>
   buffer(BufName, ModName, nil),
   buffer_state(BufName,free). 
 
+% Schedule start of request
+buffer(BufName, ModName, _) \ buffer_request(BufName, Chunk) <=>
+  get_now(Now),
+  add_q(Now,0,start_request(BufName,Chunk)).
+  
 % Schedule buffer_request
-buffer(BufName, ModName, _) \ buffer_request(BufName, Chunk) <=> %% todo: check for free buffer!!
-  write('Scheduled buffer request '),
+buffer(BufName, ModName, _) \ start_request(BufName, Chunk) <=> %% todo: check for free buffer!!
+  write('Started buffer request '),
   write(BufName),nl,
   get_now(Now),
   buffer_state(BufName,busy),
@@ -92,13 +101,18 @@ do_buffer_request(BufName, _), buffer(BufName, ModName, _), buffer_state(BufName
   write('performing request: '),write(BufName),nl,
   (ResState=error, 
   buffer(BufName, ModName, nil),
-  buffer_state(BufName,error) ;
+  buffer_state(BufName,error) ;  
   
   ResState = free,
   ResChunk = chunk(ResChunkName,_,_),
+  write('Retrieved chunk '),
+  write(ResChunkName),nl,
   add_chunk(ResChunk), 
   buffer(BufName, ModName, ResChunkName),
-  buffer_state(BufName,free)).
+  write('Put chunk '),
+  write(ResChunkName),
+  write(' into buffer'),nl,
+  buffer_state(BufName,free)). 
   
 % Schedule buffer_change
 buffer_change(BufName, Chunk) <=> 
@@ -107,6 +121,13 @@ buffer_change(BufName, Chunk) <=>
   add_q(Time, 100, do_buffer_change(BufName, Chunk)).
 
 % Handle buffer_change
+buffer(BufName, _, _) \ do_buffer_change(BufName, nil) <=>
+  set_buffer(BufName,nil).
+
+buffer(BufName, _, nil) \ do_buffer_change(BufName, C) <=>
+  add_chunk(C),
+  set_buffer(BufName,C).
+
 buffer(BufName, _, OldChunk) \ do_buffer_change(BufName, chunk(_,_,SVs)) <=>
   alter_slots(OldChunk,SVs).
 

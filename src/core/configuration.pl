@@ -39,7 +39,7 @@ set_conf(Var,Val) <=>
 notify_all(Var), notify(Module,Var) ==> Module:update. % perform all pending notifications
 notify_all(_) <=> true. % no notifications pending -> Clean up
 
-% standard values (if no values have been set)
+% default values (if no values have been set)
 get_conf(rt,_) ==> set_conf(rt,-0.5).
 get_conf(bll,_) ==> set_conf(bll,0.5).
 get_conf(alpha,_) ==> set_conf(alpha,0.2).
