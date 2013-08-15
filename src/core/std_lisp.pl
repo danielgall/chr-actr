@@ -38,9 +38,9 @@ lisp_spp([_]) <=>
   
 lisp_spp([P,:,u,U|Rest]) <=>
   set_production_utility(P,U),
-  lisp_spp([P|Rest]).
+  lisp_spp(Rest).
   
 lisp_spp([P,:,reward,R|Rest]) <=>
   set_reward(P,R),
-  lisp_spp([P|Rest]).
+  lisp_spp(Rest).
   
