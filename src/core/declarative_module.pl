@@ -70,7 +70,7 @@
 :- chr_constraint present(+chunk_def).
 
 :- chr_constraint calc_activation/2.
-:- chr_constraint base_level_part(+,+,?,-).
+:- chr_constraint base_level_part(+,+,?,?).
 % base_level_part(Chunk,Time,InterimResult,BaseLevelActivation).
 % A part of the base level calculation of chunk Chunk.
 % all such parts of a chunk are summed up and the log of the sum is the BaseLevelActivation.
@@ -264,13 +264,13 @@ base_level_part(_,Time,B,A) ==>
 
 % collect base level parts and add them together. Only if Bs are set
 base_level_part(C,_,B1,A), base_level_part(C,_,B2,A) <=>
-  nonvar(B1), nonvar(B2), var(A) |
+  number(B1), number(B2), var(A) |
   B is B1+B2,
   base_level_part(C,_,B,A).
     
 % if B is set, A is not set and there are no more base_level_parts of this chunk: calculate actual base level activation and store it in A. Only possible if B is =\= 0.
 base_level_part(_,_,B,A) <=>
-  var(A),nonvar(B), B =\= 0 |
+  var(A),number(B), B =\= 0 |
   A is log(B).
   
 % if B is set to 0, A is not set and there are no more base_level_parts of this chunk: set actual base level activation to 0 % TODO really??
