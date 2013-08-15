@@ -86,9 +86,6 @@ reduce @ chunk(C1,_), identical(C1,C2) \ identical(C2,C3) <=> identical(C1,C3).
 %% TODO: delete this rule???
 %identical(_,C) \ add_chunk(chunk(C,_,_)) <=> true.
 
-% delete chunks with new name
-identical(C,C:new) <=> true.
-
 % empty chunk will not be added
 add_chunk(nil) <=> true.
 
@@ -96,7 +93,11 @@ add_chunk(nil) <=> true.
 add_chunk(chunk(C,T,S)) ==> 
   T \== chunk | % do not check chunks of special type chunk, which has no slots. %% TODO: maybe dont check chunks with no slots generally
   check_identical_chunks(chunk(C,T,S)).
-  
+ 
+% do not add identical chunks 
+add_chunk(chunk(C:new,_,_)), identical(C,C:new) <=> true. % do not add help chunks with :new tag and remove identical information
+identical(_,C) \ add_chunk(chunk(C,_,_)) <=> true. % do not add identical chunk, but keep identical information
+ 
 % initialize all slots with nil. This leads to complete chunk definitions in store. Values that are not set stay nil.
 add_chunk(chunk(Name,Type, _)), chunk_type_has_slot(Type,S) ==> 
   chunk_has_slot(Name,S,nil).
@@ -159,7 +160,7 @@ alter_slots(Chunk,[(S,V)|SVs]) <=>
 alter_slot(Chunk,Slot,Value), chunk_has_slot(Chunk,Slot,_) <=>
   chunk_has_slot(Chunk,Slot,Value).
   
-alter_slot(Chunk,Slot,Value) <=>
+alter_slot(_,_,_) <=>
   false. % since every chunk must be described completely, Slot cannot be a slot of the type of Chunk
   %chunk_has_slot(Chunk,Slot,Value).
 
