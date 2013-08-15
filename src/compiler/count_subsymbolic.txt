@@ -1,0 +1,113 @@
+(define-model count
+
+(sgp :esc t)
+
+
+(chunk-type count-order first second)
+(chunk-type goal-chunk goal start end count)
+
+(add-dm
+ (b ISA count-order first 1 second 2)
+ (c ISA count-order first 2 second 3)
+ (d ISA count-order first 3 second 4)
+ (d1 ISA count-order first 3 second 5)
+ (e ISA count-order first 4 second 5)
+ (f ISA count-order first 5 second 6)
+ (first-goal ISA goal-chunk goal training1)
+ )
+ 
+(p train1
+  =goal>
+    ISA           goal-chunk
+    goal          training1
+ ==>
+  =goal>
+    goal          training2
+  +retrieval>
+    ISA           count-order
+    first         3
+    second        4
+)
+
+(p train2
+  =goal>
+    ISA           goal-chunk
+    goal          training2
+  =retrieval>
+    ISA           count-order
+    first         3
+    second        4
+ ==>
+  =goal>
+    ISA           goal-chunk
+    start         2
+    end           4
+    goal          count
+  -retrieval> 
+)
+ 
+(p start
+   =goal>
+      ISA         goal-chunk
+      goal        count
+      start       =num1
+      count       nil
+ ==>
+   =goal>
+      count       =num1
+   +retrieval>
+      ISA         count-order
+      first       =num1
+)
+
+(P increment
+   =goal>
+      ISA         goal-chunk
+      goal        count
+      count       =num1
+    - end         =num1
+   =retrieval>
+      ISA         count-order
+      first       =num1
+      second      =num2
+ ==>
+   =goal>
+      count       =num2
+   +retrieval>
+      ISA         count-order
+      first       =num2
+   !output!       (=num1)
+)
+
+(P incrementx
+   =goal>
+      ISA         goal-chunk
+      goal        count
+      count       =num1
+    - end         =num1
+   =retrieval>
+      ISA         count-order
+      first       =num1
+      second      =num2
+ ==>
+   -goal>
+   !output!       (wrong)
+)
+
+(P stop
+   =goal>
+      ISA         goal-chunk
+      goal        count
+      count       =num
+      end         =num
+ ==>
+   -goal>
+   !output!       (=num)
+
+)
+
+(goal-focus first-goal)
+
+(spp increment :u 8 incrementx :u 0)
+(spp stop :reward 15)
+)
