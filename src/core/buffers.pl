@@ -79,7 +79,7 @@ add_buffer(BufName, ModName) <=>
   buffer_state(BufName,free). 
 
 % Schedule start of request
-buffer(BufName, ModName, _) \ buffer_request(BufName, Chunk) <=>
+buffer_request(BufName, Chunk) <=>
   get_now(Now),
   add_q(Now,0,start_request(BufName,Chunk)).
   
@@ -149,14 +149,19 @@ buffer_clear(BufName) <=>
   
 % Handle buffer_clear
 do_buffer_clear(BufName), buffer(BufName, ModName, Chunk) <=> 
-  write('clear buffer '),write(BufName),nl, 
+  Chunk \== nil |
+  write('clear buffer '),write(BufName:Chunk),nl, 
   write_to_dm(Chunk), 
   delete_chunk(Chunk), 
   buffer(BufName, ModName, nil).
+
+buffer(BufName, _, Chunk) \ do_buffer_clear(BufName) <=> 
+  Chunk == nil |
+  write('clear buffer '),write(BufName:Chunk),nl.
 
 delete_chunk(Name) \ chunk(Name,_) <=> true.
 delete_chunk(Name) \ chunk_has_slot(Name,_,_) <=> true.
 delete_chunk(_) <=> true.
 
 % Handle write_to_dm
-write_to_dm(ChunkName) <=> return_chunk(ChunkName, ResChunk), add_dm(ResChunk).
+write_to_dm(ChunkName) <=> return_chunk(ChunkName, ResChunk), write('add chunk':ResChunk),nl,add_dm(ResChunk).
