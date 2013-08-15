@@ -70,7 +70,7 @@ letter(L) :- 96 < L, L < 123.
 
 minus(C) :- C == 45.
 
-special_char(33). %(
+special_char(33). %!
 special_char(40). %(
 special_char(41). %)
 special_char(43). %+
