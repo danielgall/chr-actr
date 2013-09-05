@@ -131,7 +131,8 @@ buffer(BufName, _, nil) \ do_buffer_change(BufName, C) <=>
 buffer(BufName, _, OldChunk) \ do_buffer_change(BufName, chunk(_,_,SVs)) <=>
   alter_slots(OldChunk,SVs).
 
-  
+% Destructive assignment for buffers
+%    
 set_buffer(BufName, nil), buffer(BufName, ModName, _)  <=> 
   buffer(BufName, ModName, nil).
   
@@ -139,7 +140,7 @@ set_buffer(BufName, chunk(ChunkName, _, _)), buffer(BufName, ModName, _) <=>
   buffer(BufName, ModName, ChunkName).
   
 set_buffer_state(BufName, State), buffer_state(BufName, _) <=> buffer_state(BufName, State).
-  
+
 
 % Schedule buffer_clear
 buffer_clear(BufName) <=> 

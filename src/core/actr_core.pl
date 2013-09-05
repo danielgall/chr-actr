@@ -15,11 +15,11 @@ goal_focus(Chunk) <=>
   set_buffer(goal,ResChunk),
   set_buffer_state(goal,ResState).
     
-%now(Now) \ output(X) <=> Time is Now + 1, add_q(Time,do_output(X)).
-%do_output(X) <=> write(X),nl.
 output(X) <=> write(output:X),nl.  % reference p. 166: eval output, bind calls occur during fire event => immediately
 
-% TODO
+%
+% Rules to calculate the current context, i.e. the chunks in the buffers
+%
 :- chr_constraint get_context/1, context/1, collect_context/1.
 
 chunk_has_slot(_,_,V), get_context(_) ==> context([V]).
@@ -28,6 +28,10 @@ get_context(Context) <=> collect_context(Context). % no more slots => collect re
 context([nil]) <=> true.
 context(C1),context(C2) <=> append(C1,C2,C), context(C).
 context(C), collect_context(Context) <=> Context = C.  
+
+%
+% Production Utilities
+%
 
 :- chr_constraint set_production_utility/2, production_utility/2, set_default_utilities/1, conflict_set/1, choose/0, apply_rule/1, reward/2, set_reward/2, trigger_reward/1, to_reward/2.
 
@@ -41,6 +45,11 @@ set_default_utilities([]) <=> true.
 set_default_utilities([P|Ps]) <=>
   set_production_utility(P,5),
   set_default_utilities(Ps).
+  
+%
+% Conflict Resolution
+% Calculate conflict set and choose rule to apply.
+%
 
 conflict_set(_) \ conflict_set([]) <=> true.
   
@@ -58,6 +67,11 @@ choose @ choose, conflict_set(P) <=>
   write('going to apply rule '),write(P),nl,
   add_q(Time,0,apply_rule(P)).
   
+%
+% Rule Application
+% Messages and reward triggering
+%
+  
 apply_rule(P) ==> P \== [] | write('firing rule '),write(P),nl.
 
 apply_rule(P) ==> P \== [] | get_now(Now), to_reward(P,Now).
@@ -67,6 +81,10 @@ apply_rule(P), reward(P,R) ==>
   trigger_reward(R),
   write('reward triggered by rule '),
   write(P),nl.
+  
+%
+% Handle rewards
+%  
   
 set_reward(P,R), reward(P,_) <=>
   reward(P,R).
