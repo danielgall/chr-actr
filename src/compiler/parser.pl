@@ -1,135 +1,97 @@
 :- module(parser, [parse/2]).
 
-% DCG rule implementation of grammar:
-% s -> production_rule
-% production_rule -> '(p' production_name lhs '==>' rhs ')'
-% production_name -> // some identifier
-% lhs -> buffer_tests
-% buffer_tests -> buffer_test | buffer_test buffer_tests
-% buffer_test -> '=' buffer '>' slot_tests
-% slot_tests -> slot_test | slot_test slot_tests
-% slot_test --> slot_variable_pair
-% slot_test --> slot_value_pair
-% slot_variable_pair -> slot '=' variable
-% slot_value_pair -> slot value
-% slot | variable | value -> // some identifier
-% rhs -> buffer_operations
-% buffer_operations -> buffer_change | buffer_request | buffer_change buffer_operations | buffer_request buffer_operations
-% buffer_change -> '=' buffer '>' slot_rhss
-% buffer_request -> '+' buffer '>' slot_rhss
-% slot_rhss -> slot_rhs | slot_rhs slot_rhss
-% slot_rhs -> slot_variable_pair | slot_value_pair
-% identifier -> // everything that is not '=', '>', '+', '-' or '!' (which means: a reserved word).
-%
-
 s(model(ModelName,Rs)) --> ['(', 'define-model', ModelName ],!, rules(Rs), [')'].
 
-rules([F]) --> production_rule(F).
-rules([F|Fs]) --> production_rule(F), rules(Fs).
+% rules are lisp functions of the form (functor arg ...), i.e. lisp lists with a functor at first place
+% Production rules are special functions with functor p
+rules([R]) --> production_rule(R).
+rules([R|Rs]) --> production_rule(R), rules(Rs).
 
-rules([R]) --> lisp_function(R).
-rules([R|Rs]) --> lisp_function(R), rules(Rs).
+rules([F]) --> lisp_function(F).
+rules([F|Fs]) --> lisp_function(F), rules(Fs).
 
-%s(s(P)) --> production_rule(P).
-%s(s(P, Ss)) --> production_rule(P), s(Ss).
-
-
-production_rule(production_rule(Name, LHS, RHS)) --> ['('], [p],!, production_name(Name), lhs(LHS), [==>], rhs(RHS), [')'].
-
-lisp_function(lisp_function(FName, FArgs)) --> ['(', FName], arguments(FArgs), [')'], { identifier(FName) }.
-
-arguments([A]) -->  ['(' ],list(A),[')'].
-arguments(FArgs) --> ['(' ],list(A),[')'],!,arguments(As), { FArgs = [A|As] }.
-arguments([A]) --> [A], { identifier(A) }.
-arguments([A|As]) --> [A], arguments(As), { identifier(A) }.
-%arguments(FArgs) --> ['(' ], [A], arguments(As), [')'], { identifier(A), append(A,As,FArgs) }.
-
-list([X|Xs]) --> [X], list(Xs), {identifier(X)}.
-list([X]) --> [X], {identifier(X)}.
-%list([]) --> [].
+lisp_function(lisp_function(Functor,Args)) --> lisp_list(List), { [Functor|Args] = List }. % separate functor from arguments in list [functor,arg1,arg2,...]
 
 
-production_name(production_name(ProductionName)) --> [ProductionName], { identifier(ProductionName) }.
+lisp_list(L) --> ['('],!, lisp_listcontent(L), [')'],!.
+lisp_listcontent([X]) --> [X], { identifier(X) }.
+lisp_listcontent([X|Xs]) --> [X], {identifier(X)}, lisp_listcontent(Xs).
+lisp_listcontent([L]) --> lisp_list(L).
+lisp_listcontent([L|Xs]) --> lisp_list(L), lisp_listcontent(Xs).
 
-lhs(lhs(BufTests)) --> buffer_tests(BufTests).
+% A production rule has a name, a left-hand-side (LHS) and a right-hand-side (RHS)
+production_rule(production_rule(Name, LHS, RHS)) --> ['(', p, Name],{ identifier(Name) },!, lhs(LHS), [==>],!, rhs(RHS), [')'],!.
 
-buffer_tests(buffer_tests(BufferTest)) --> buffer_test(BufferTest).
-buffer_tests(buffer_tests(BufferTest, Next)) --> buffer_test(BufferTest), buffer_tests(Next).
+% LHS consists of one or more conditions
+lhs([C]) --> condition(C).
+lhs([C|Cs]) --> condition(C), lhs(Cs).
 
-buffer_tests(buffer_tests(BufferQuery)) --> buffer_query(BufferQuery).
-buffer_tests(buffer_tests(BufferQuery, Next)) --> buffer_query(BufferQuery), buffer_tests(Next).
+% A condition is either a buffer test or a query
+condition(BufTest) --> buffer_test(BufTest).
+condition(BufQuery) --> buffer_query(BufQuery).
 
-buffer_test(buffer_test(Buffer, ChunkType, SlotTests)) --> [=], buffer(Buffer), [>, isa, ChunkType], slot_tests(SlotTests), {identifier(ChunkType)}.
+% A buffer test specifies a buffer and a chunk type and is followed by an arbitrary number of slot_tests and is indicated by a =
+buffer_test(buffer_test(Buffer,ChunkType,SlotTests)) --> [=, Buffer, >, isa, ChunkType],{ identifier(Buffer), identifier(ChunkType)},!, slot_tests(SlotTests).
 
-slot_tests(slot_tests(SlotTest)) --> slot_test(SlotTest).
-slot_tests(slot_tests(SlotTest, Next)) --> slot_test(SlotTest), slot_tests(Next).
+% a slot_test consists of a (modified) slot_variable_pair or slot_value_pair
+% there may be multiple slot_tests in a buffer_test
+slot_tests([slot_test(M,S,var(V))|SVPs]) --> [M, S, =, V],{ slot_modifier(M), identifier(S), identifier(V) },!, slot_tests(SVPs).
+slot_tests([slot_test(=,S,var(V))|SVPs]) --> [S, =, V],{ identifier(S), identifier(V) },!, slot_tests(SVPs).
 
-slot_tests(slot_tests(SlotTest)) --> neg_slot_test(SlotTest).
-slot_tests(slot_tests(SlotTest, Next)) --> neg_slot_test(SlotTest), slot_tests(Next).
+slot_tests([slot_test(M,S,val(V))|SVPs]) --> [M, S, V],{ slot_modifier(M), identifier(S), identifier(V) },!, slot_tests(SVPs).
+slot_tests([slot_test(=,S,val(V))|SVPs]) --> [S, V], { identifier(S), identifier(V) },!, slot_tests(SVPs).
 
-slot_test(slot_test(SVP)) --> slot_variable_pair(SVP).
-slot_test(slot_test(SVP)) --> slot_value_pair(SVP).
+slot_tests([]) --> [].
 
-neg_slot_test(neg_slot_test(SVP)) --> [-], slot_variable_pair(SVP).
-neg_slot_test(neg_slot_test(SVP)) --> [-], slot_value_pair(SVP).
+% A buffer_query specifies a buffer and an arbitrary number of query_tests and is indicated by a ?
+buffer_query(buffer_query(Buffer,QueryTests)) --> [?, Buffer, >],{ identifier(Buffer) },!, query_tests(QueryTests).
 
-slot_variable_pair(slot_variable_pair(Slot, Variable)) --> slot(Slot), [=], variable(Variable).
-slot_value_pair(slot_value_pair(Slot,Value)) --> slot(Slot), value(Value).
+% A query_test consists of a (modified) item-value-pair or item-variable-pair
+% there may be multiple query_tests in a buffer_query
+query_tests([query_test(M,I,var(V))|QTs]) --> [M, I, =, V],{ query_modifier(M), identifier(I), identifier(V) },!, query_tests(QTs).
+query_tests([query_test(=,I,var(V))|QTs]) --> [I, =, V],{ identifier(I), identifier(V) },!, query_tests(QTs).
 
-buffer(buffer(BufferName)) --> [BufferName], { identifier(BufferName) }.
-slot(slot(SlotName)) --> [SlotName], { identifier(SlotName) }.
-value(value(ValueToken)) --> [ValueToken], { identifier(ValueToken) }.
-variable(variable(VariableName)) --> [VariableName], { identifier(VariableName) }.
+query_tests([query_test(M,I,val(V))|QTs]) --> [M, I, V],{ query_modifier(M), identifier(I), identifier(V) },!, query_tests(QTs).
+query_tests([query_test(=,I,val(V))|QTs]) --> [I, V],{ identifier(I), identifier(V) },!, query_tests(QTs).
 
-buffer_query(buffer_query(Buffer, Queries)) --> [?], buffer(Buffer), [>], queries(Queries).
-
-queries(queries([neg(QueriedItem,QueryValue)])) --> [-,QueriedItem, QueryValue], { identifier(QueriedItem), identifier(QueryValue) }.
-queries(queries([neg(QueriedItem,QueryValue)|Qs])) --> [-,QueriedItem, QueryValue], queries(Qs), { identifier(QueriedItem), identifier(QueryValue) }.
-
-queries(queries([(QueriedItem,QueryValue)])) --> [QueriedItem, QueryValue], { identifier(QueriedItem), identifier(QueryValue) }.
-queries(queries([(QueriedItem,QueryValue)|Qs])) --> [QueriedItem, QueryValue], queries(Qs), { identifier(QueriedItem), identifier(QueryValue) }.
-
-rhs(rhs(BufferOperations)) --> buffer_operations(BufferOperations).
-
-buffer_operations(buffer_operations(BufferChange)) --> buffer_change(BufferChange).
-buffer_operations(buffer_operations(BufferRequest)) --> buffer_request(BufferRequest).
-buffer_operations(buffer_operations(BufferClear)) --> buffer_clear(BufferClear).
-buffer_operations(buffer_operations(BufferChange, Next)) --> buffer_change(BufferChange), buffer_operations(Next).
-buffer_operations(buffer_operations(BufferRequest, Next)) --> buffer_request(BufferRequest), buffer_operations(Next).
-buffer_operations(buffer_operations(BufferClear, Next)) --> buffer_request(BufferClear), buffer_operations(Next).
-
-buffer_change(buffer_change(Buffer, ChunkType, SlotRHSs)) --> [=], buffer(Buffer), [>, isa, ChunkType], slot_rhss(SlotRHSs), { identifier(ChunkType) }.
-buffer_change(buffer_change(Buffer, _, SlotRHSs)) --> [=], buffer(Buffer), [>], slot_rhss(SlotRHSs).
-
-buffer_request(buffer_request(Buffer, ChunkType, SlotRHSs)) --> [+], buffer(Buffer), [>, isa, ChunkType], slot_rhss(SlotRHSs), { identifier(ChunkType) }.
-buffer_request(buffer_request(Buffer, _, SlotRHSs)) --> [+], buffer(Buffer), [>], slot_rhss(SlotRHSs).
-
-buffer_clear(buffer_clear(Buffer)) --> [-], buffer(Buffer), [>].
-buffer_clear(buffer_clear(Buffer, FunctionCalls)) --> [-], buffer(Buffer), [>], function_calls(FunctionCalls).
-
-slot_rhss(slot_rhss(Call)) --> function_call(Call).
-slot_rhss(slot_rhss(Call, Next)) --> function_call(Call), slot_rhss(Next).
-
-slot_rhss(slot_rhss(SC)) --> slot_rhs(SC).
-slot_rhss(slot_rhss(SC, Next)) --> slot_rhs(SC), slot_rhss(Next).
-
-slot_rhs(slot_rhs(SVP)) --> slot_variable_pair(SVP).
-slot_rhs(slot_rhs(SVP)) --> slot_value_pair(SVP).
-
-function_calls(function_calls(FunctionCall)) --> function_call(FunctionCall).
-function_calls(function_calls(FunctionCall, Next)) --> function_call(FunctionCall), function_calls(Next).
-
-function_call(function_call(Functor, Args)) --> sfunctor(Functor), ['('], func_args(Args), [')'].
-sfunctor(functor(Functor)) -->  [!, Functor, !], { identifier(Functor) }.
-func_args(func_args(Arg)) --> func_arg(Arg).
-func_args(func_args(Arg, Next)) --> func_arg(Arg), func_args(Next).
-func_arg(func_arg(Arg)) --> [=], variable(Arg).
-func_arg(func_arg(Arg)) --> value(Arg).
+query_tests([]) --> [].
 
 
+rhs([A]) --> action(A).
+rhs([A|As]) --> action(A), rhs(As).
 
+action(BufMod) --> buffer_modification(BufMod).
+action(BufReq) --> buffer_request(BufReq).
+action(BufCl)  --> buffer_clearing(BufCl).
+action(Output) --> output(Output).
+
+buffer_modification(buffer_modification(Buffer,SVPs)) --> [=, Buffer, >],{ identifier(Buffer) },!, slot_value_pairs(SVPs).
+
+buffer_request(buffer_request(Buffer,ChunkType,SVPs)) --> [+, Buffer, >, isa, ChunkType],{ identifier(Buffer), identifier(ChunkType) },!, slot_value_pairs(SVPs).
+
+buffer_clearing(buffer_clearing(Buffer)) --> [-, Buffer, >], { identifier(Buffer) },!.
+
+output(output(var(Output))) --> [!, output, !, '(',=, Output,')'], { identifier(Output) },!.
+output(output(val(Output))) --> [!, output, !, '(', Output,')'], { identifier(Output) },!.
+
+% slot_variable_pair
+slot_value_pairs([slot_value_pair(S,var(V))|SVPs]) --> [S, =, V], { identifier(S), identifier(V) },!,slot_value_pairs(SVPs).
+% slot_value_pair
+slot_value_pairs([slot_value_pair(S,val(V))|SVPs]) --> [S, V],{ identifier(S), identifier(V) },!, slot_value_pairs(SVPs).
+slot_value_pairs([]) --> [].
+
+
+% no keywords/special chars
 identifier(X) :-
-  X \== '=', X \== '>', X \== '+', X \== '-', X \== '!', X \== '(', X \== ')'.
+  X \== '=', X \== '>', X \== '+', X \== '-', X \== '!', X \== '(', X \== ')', X \== '==>'.
+
+% list of allowed slot_modifiers
+slot_modifier(M) :-
+  M == '-'.
+
+% list of allowed query_modifiers
+query_modifier(M) :-
+  M == '-'.
   
 parse(Tokens, Structure) :-
   s(Structure, Tokens, []).

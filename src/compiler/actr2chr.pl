@@ -25,246 +25,315 @@ compile_file(F) :-
   console,
   nl,nl,
   chr_headers,
-  compile_structure(Structure), !,
+  process(Structure), !,
   footers,
   file(end).
 
+  
+:- chr_constraint process/1, init/1, init_rule/0, init_utilities/0, init_utilities/1, lisp_function/2, slice/2, buffer_test/3, slot_test/3, buffer_query/1, query_test/3, complete_rule/0, clear_symbol_table/0, buffer_modification/2, buffer_request/3, buffer_clearing/1, output/1, slot_value_pair/2.
 
-compile_structure(model(ModelName,Functions)) <=> 
-  compile_structure2(Functions,Inits),
-  init_utilities(Utilities),
-  Header = [set_default_utilities(Utilities),add_buffer(retrieval,declarative_module), add_buffer(goal,declarative_module),lisp_chunktype([chunk])],
-  Footer = [now(0),conflict_resolution,nextcyc],
-  append(Header,Inits,L),
-  append(L,Footer,ResInits),
-  chrl(init,[],[run],[],ResInits).
+process([]) <=> true.
+
+process(model(_, Rules)) <=>
+  % produce header of init rule
+  init([add_buffer(retrieval,declarative_module), add_buffer(goal,declarative_module),lisp_chunktype([chunk])]),
+  % compile production rules and functions
+  process(Rules),
+  % initialize utilities of all production rules
+  init_utilities,
+  % footer of init rule
+  init([now(0),conflict_resolution,nextcyc]),
+  % put init rule together
+  init_rule.
+  
+process([lisp_function(Functor,Args)|Rules]) <=>
+  lisp_function(Functor,Args),
+  process(Rules).
+  
+process([production_rule(Name, LHS, RHS)|Rules]) <=>
+  % initialize rule slices
+  slice(name,Name),
+  slice(hk,[]),
+  slice(hr,[]),
+  slice(guard,[]),
+  slice(body,[]),
+  
+  %process rule parts
+  process(LHS),
+  process(RHS),
+  
+  % put rule together
+  complete_rule,
+  
+  % process next rules
+  process(Rules).
+  
+%
+% Buffer Tests
  
-:- chr_constraint production/1, init_utilities/1. 
- 
-production(P), init_utilities(Utilities) <=> Utilities=[P|Rest], init_utilities(Rest).
-init_utilities(Utilities) <=> Utilities=[].
+process([buffer_test(Buffer,ChunkType,SlotTests)|Conditions]) <=>
+  process(SlotTests),
+  buffer_test(Buffer,ChunkType,_), % introduce new chunk with anonymous name _ associated to this buffer test
+  process(Conditions).
+  
+process([slot_test(M,S,V)|SlotTests]) <=>
+  slot_test(M,S,V),
+  process(SlotTests).
+  
+%
+% Buffer Queries
 
-compile_structure2([],Inits) <=> Inits=[].
-compile_structure2([X|Xs],Res) <=>
-  compile_structure2(X,Init),
-  compile_structure2(Xs,Inits),
-  append(Init,Inits,Res).
+process([buffer_query(Buffer,QueryTests)|Conditions]) <=>
+  process(QueryTests),
+  buffer_query(Buffer),
+  process(Conditions).
+  
+process([query_test(M,I,V)|QueryTests]) <=>
+  query_test(M,I,V),
+  process(QueryTests).
+  
+%
+% Buffer Actions  
 
-compile_structure2(lisp_function(FName,FArgs),Init) <=> 
-  atom_chars(FName,Chars),
+process([buffer_modification(Buffer,SVPs)|Actions]) <=> 
+  process(SVPs),
+  buffer_modification(Buffer, []),
+  process(Actions).
+  
+process([buffer_request(Buffer,ChunkType,SVPs)|Actions]) <=> 
+  process(SVPs),
+  buffer_request(Buffer,ChunkType,[]),
+  process(Actions).
+  
+process([buffer_clearing(Buffer)|Actions]) <=> 
+  buffer_clearing(Buffer),
+  process(Actions).
+  
+process([output(O)|Actions]) <=> 
+  output(O),
+  process(Actions).
+  
+process([slot_value_pair(S,V)|SVPs]) <=>
+  slot_value_pair(S,V),
+  process(SVPs).
+  
+%%%%%%%%%%%%% Lisp Functions %%%%%%%%%%%%%%%
+
+lisp_function(Functor,Args) <=>
+  atom_chars(Functor,Chars),
   delete(Chars,-,CharsR),
-  atom_chars(FNameR,CharsR),
-  atom_concat(lisp_,FNameR,F),
-  I =.. [F|[FArgs]],
-  Init = [I].
-  
-compile_structure2(production_rule(N,L,R),Inits) <=>
-  compile_structure(production_rule(N,L,R)),
-  Inits = [].
-  
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Production rule compilation %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  atom_chars(Functor1,CharsR),
+  atom_concat(lisp_,Functor1,ResFunctor),
+  I =.. [ResFunctor|[Args]],
+  init([I]).
 
-compile_structure(production_rule(production_name(Name), LHS, RHS)) <=> 
-  compile_structure2_lhs(LHS, Head, Guard), 
-  compile_structure2(RHS, ResRHS),
-  end_of_block,
-  append(ResRHS,[conflict_resolution],Body),
-  chrl(delay-Name, [fire|Head],[],Guard,[conflict_set(Name)]),
-  chrl(Name, Head,[apply_rule(Name)],Guard,Body),
-  production(Name).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% LHS
-%%  
+%%%%%%%%%%%%% PRODUCTION RULES %%%%%%%%%%%%%
 
-compile_structure2_lhs(lhs(BufferTests),R,Guard) <=>
-  compile_structure2_lhs(BufferTests,R, Guard).
-  
-compile_structure2_lhs(buffer_tests(BufferTest),R,Guard) <=>
-  compile_structure2_lhs(BufferTest, R, Guard).
+%%%%%%%%%%%% Buffer Tests %%%%%%%%%%%%%%%%%%%
 
+%% duplicate slot tests
 
-compile_structure2_lhs(buffer_tests(BufferTest, Next),R,Guard) <=> 
-  compile_structure2_lhs(BufferTest, RBufferTest,Guard1),
-  compile_structure2_lhs(Next, RNext,Guard2),
-  append(RBufferTest,RNext,R),
-  append(Guard1,Guard2,Guard).
+slot_test
   
-compile_structure2_lhs(buffer_test(buffer(Buffer), ChunkType, SlotTests),R, Guard) <=>
-  compile_structure3_lhs(SlotTests, Chunk, R1,Guard),
-  R = [buffer(Buffer,_,Chunk), chunk(Chunk,ChunkType)|R1].
-  
-% 
-% Compile slot_tests and slot_test
-%
+%%%% collect slot_tests for a buffer_test %%%
 
-% structure: single slot_test in slot_tests-environment.
-% returns: list containing that slot_test in form of a chunk_has_slot constraint
-compile_structure3_lhs(slot_tests(SlotTest), Chunk, R, Guard) <=>
-  compile_structure3_lhs(SlotTest, Chunk, R, Guard).
+%%% constant values
+%% unmodified slot test with constant value
+buffer_test(_,_,C) \ slot_test(=,S,val(V)) <=>
+  slice(hk,[chunk_has_slot(C,S,V)]).
+  
+%% modified slot test with constant value
+buffer_test(_,_,C) \ slot_test(M,S,val(V)) <=>
+  slice(hk,[chunk_has_slot(C,S,X)]),
+  return_modifier(M,X,V,Res),
+  slice(guard,Res).
 
-% structure: slot_test followed by next slot_tests in slot_tests-environment
-% returns: list containing all the slot_tests in form of chunk_has_slot constraints
-compile_structure3_lhs(slot_tests(SlotTest, Next), Chunk, R, Guard) <=>
-  compile_structure3_lhs(SlotTest, Chunk, RSlotTest, Guard1),
-  compile_structure3_lhs(Next, Chunk, RNext, Guard2),
-  append(RSlotTest,RNext,R),
-  append(Guard1,Guard2,Guard).
+%%% variables
+%% unmodified slot test with variable
+% variable already in symbol table
+symbol_table(V,Var), buffer_test(_,_,C) \ slot_test(=,S,var(V)) <=>
+  slice(hk,[chunk_has_slot(C,S,Var)]).
+  
+% variable not yet in symbol table
+buffer_test(_,_,C) \ slot_test(=,S,var(V)) <=>
+  symbol_table(V,Var), % remember variable assignment
+  slice(hk,[chunk_has_slot(C,S,Var)]),
+  slice(guard,[Var \== nil]).
 
-% structure: slot_test containing one slot-value-pair with slot S and value V
-% returns: a list containing this one slot_test in form of a chunk_has_slot constraint  
-compile_structure3_lhs(slot_test(slot_value_pair(slot(S),value(V))), Chunk, R,Guard) <=>
-  R = [chunk_has_slot(Chunk,S,V)],
-  Guard = [].
+%% modified slot test with variable
+% variable already in symbol table
+symbol_table(V,Var), buffer_test(_,_,C) \ slot_test(M,S,var(V)) <=>
+  slice(hk,[chunk_has_slot(C,S,X)]),
+  return_modifier(M,X,Var,Res),
+  slice(guard,Res).
+  
+% variable not yet in symbol table
+buffer_test(_,_,C) \ slot_test(M,S,var(V)) <=>
+  symbol_table(V,Var), % remember variable assignment
+  slice(hk,[chunk_has_slot(C,S,X)]),
+  return_modifier(M,X,Var,Res),
+  slice(guard,Res). 
+  
+%%% complete this buffer test
+buffer_test(Buffer,ChunkType,C) <=>
+  slice(hk,[chunk(C,ChunkType)]),
+  slice(hk,[buffer(Buffer,_,C)]).
 
-% structure: slot_test containing one slot-variable-pair with slot S and variable V
-% If the variable V already has been used in this rule, it will be bound to that former variable.
-% returns: a list containing this one slot_test in form of a chunk_has_slot constraint  
-symbol_table(V, Var) \ compile_structure3_lhs(slot_test(slot_variable_pair(slot(S),variable(V))), Chunk, R, Guard) <=>
-  R = [chunk_has_slot(Chunk,S,Var)],
-  Guard = [].
+%%% translate ACT-R slot modifiers to Prolog comparators  
+return_modifier(-,X,Y,[X \== Y]).
+return_modifier(<,X,Y,[X < Y]).  
+return_modifier(>,X,Y,[X > Y]).
+% TODO add <= >=  
   
-compile_structure3_lhs(slot_test(slot_variable_pair(slot(S),variable(V))), Chunk, R, Guard) <=>
-  symbol_table(V, Var),
-  R = [chunk_has_slot(Chunk,S,Var)],
-  Guard = [Var \== nil].
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% negated slot tests
-%
-  
-% structure: neg_slot_test containing one slot-value-pair with slot S and value V
-% returns: a list containing this one slot_test in form of a chunk_has_slot constraint  
-compile_structure3_lhs(neg_slot_test(slot_value_pair(slot(S),value(V))), Chunk, R,Guard) <=>
-  R = [chunk_has_slot(Chunk,S,X)],
-  Guard = [X \== V].
+%%%%%%%%%% Buffer Query %%%%%%%%%%%%%%%%%%%%
 
-% structure: slot_test containing one slot-variable-pair with slot S and variable V
-% If the variable V already has been used in this rule, it will be bound to that former variable.
-% returns: a list containing this one slot_test in form of a chunk_has_slot constraint  
-symbol_table(V, Var) \ compile_structure3_lhs(neg_slot_test(slot_variable_pair(slot(S),variable(V))), Chunk, R, Guard) <=>
-  R = [chunk_has_slot(Chunk,S,X)],
-  Guard = [X \== Var].
-  
-compile_structure3_lhs(neg_slot_test(slot_variable_pair(slot(S),variable(V))), Chunk, R, Guard) <=>
-  symbol_table(V, Var),
-  R = [chunk_has_slot(Chunk,S,X)],
-  Guard = [X \== Var].
-  
-  
-compile_structure2_lhs(buffer_query(buffer(_), queries([])),R, Guard) <=> R=[],Guard=[].
-compile_structure2_lhs(buffer_query(buffer(Buffer), queries([(QueriedItem,QueryValue)|Qs])),R, Guard) <=> 
-  compile_structure2_lhs(buffer_query(buffer(Buffer), queries(Qs)),RNext, _),
-  append([buffer_state(Buffer,QueriedItem,QueryValue)],RNext,R),
-  Guard = [].
+%% collect query_tests for a buffer_query %%
 
-%TODO add support for query values as bound variables  
+%%% unmodified
+%% unmodified with constant value
+buffer_query(Buffer) \ query_test(=,I,val(V)) <=>
+  slice(hk,[buffer_state(Buffer,I,V)]).
   
-% RHS
-%%    
+%% unmodified with variable which exists in symbol table  
+buffer_query(Buffer), symbol_table(V,Var) \ query_test(=,I,var(V)) <=>
+  slice(hk,[buffer_state(Buffer,I,Var)]).
   
-compile_structure2(rhs(RHS),R) <=> 
-  compile_structure2(RHS,R).
+%% unmodified with variable which does not exist yet
+buffer_query(Buffer) \ query_test(=,I,var(V)) <=>
+  symbol_table(V,Var),
+  slice(hk,[buffer_state(Buffer,I,Var)]).
   
-compile_structure2(buffer_operations(BufOp),R) <=> 
-  compile_structure2(BufOp,R).
+%%% modified
+%% modified with constant value
+buffer_query(Buffer) \ query_test(M,I,val(V)) <=>
+  slice(hk,[buffer_state(Buffer,I,X)]),
+  return_modifier(M,X,V,Res),
+  slice(guard,Res).
   
-compile_structure2(buffer_operations(BufOp, Next),R) <=> 
-  compile_structure2(BufOp,RBufOp),
-  compile_structure2(Next, RNext),
-  append(RBufOp,RNext,R).
+%% modified with variable which exists in symbol table  
+buffer_query(Buffer), symbol_table(V,Var) \ query_test(M,I,var(V)) <=>
+  slice(hk,[buffer_state(Buffer,I,X)]),
+  return_modifier(M,X,Var,Res),
+  slice(guard,Res).
   
-compile_structure2(buffer_request(buffer(Buffer), ChunkType, SlotRequests),R) <=>
-  compile_structure3(SlotRequests,RSlots,RFuncCalls),
-  append([buffer_request(Buffer, chunk(_,ChunkType,RSlots))],RFuncCalls,R).
-  
-compile_structure2(buffer_change(buffer(Buffer), ChunkType, SlotChanges),R) <=>
-  compile_structure3(SlotChanges,RSlots,RFuncCalls),
-  append([buffer_change(Buffer, chunk(_,ChunkType,RSlots))],RFuncCalls,R).
-  
-  
- 
- 
- 
-compile_structure2(buffer_clear(buffer(Buffer), FuncCalls),R) <=>
-  compile_structure2(FuncCalls,RFuncCalls),
-  list2goal(RFuncCalls, FuncCallGoals),
-  R = [buffer_clear(Buffer), FuncCallGoals]. % TODO funccalls!!
-  
- 
-compile_structure2(function_calls(FuncCalls), R) <=>
-  compile_structure2(FuncCalls, R).
-  
-compile_structure2(function_calls(FuncCalls, Next), R) <=>
-  compile_structure2(FuncCalls, RFC),
-  compile_structure2(Next, RNext),
-  append(RFC,RNext,R).
-  
-  
-compile_structure2(function_call(functor(Functor), Args), R) <=>
-  compile_structure2(Args, RArgs),
-  F =.. [Functor|RArgs],
-  R = [F].
+%% modified with variable which does not exist yet
+buffer_query(Buffer) \ query_test(M,I,var(V)) <=>
+  symbol_table(V,Var),
+  slice(hk,[buffer_state(Buffer,I,X)]),
+  return_modifier(M,X,Var,Res),
+  slice(guard,Res).
+    
+buffer_query(_) <=> true.
 
-  
-compile_structure2(func_args(func_arg(value(Arg))), R) <=>
-  R = [Arg].
-  
-compile_structure2(func_args(func_arg(value(Arg)), Next), R) <=>
-  compile_structure2(Next, RNext),
-  append([Arg],RNext,R).
-  
-  
-symbol_table(V, Arg) \ compile_structure2(func_args(func_arg(variable(V))), R) <=>
-  R = [Arg].
-  
-symbol_table(V, Arg) \ compile_structure2(func_args(func_arg(variable(V)), Next), R) <=>
-  compile_structure2(Next, RNext),
-  append([Arg],RNext,R).
-  
-compile_structure2(func_args(func_arg(variable(V))), R) <=>
-  symbol_table(V, Arg),
-  R = [Arg].
-  
-compile_structure2(func_args(func_arg(variable(V)), Next), R) <=>
-  symbol_table(V, Arg),
-  compile_structure2(Next, RNext),
-  append([Arg],RNext,R).
-  
-  
-compile_structure3(slot_rhss(slot_rhs(SR)), R, RFC) <=>
-  RFC = [],
-  compile_structure2(slot_rhs(SR), R).
-  
-compile_structure3(slot_rhss(slot_rhs(SR), Next), R, RNextFunctions) <=>
-  compile_structure2(slot_rhs(SR), RSR),
-  compile_structure3(Next, RNext,RNextFunctions),
-  append(RSR,RNext,R).
-  
-compile_structure3(slot_rhss(function_call(F,Args)), RS, R) <=>
-  RS = [],
-  compile_structure2(function_call(F,Args), R).
-  
-compile_structure3(slot_rhss(function_call(F,Args), Next), RNextSlots, R) <=>
-  compile_structure2(function_call(F,Args), RFC),
-  compile_structure3(Next, RNextSlots, RNextFunctions),
-  append(RFC,RNextFunctions,R).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-compile_structure2(slot_rhs(slot_value_pair(slot(S),value(V))),R) <=>
-  R = [(S,V)].
+%%%%%%%%%% Buffer Modification %%%%%%%%%%%%%
+
+buffer_modification(Buffer,SVPs), slot_value_pair(S,val(V)) <=>
+  buffer_modification(Buffer,[(S,V)|SVPs]).
+
+symbol_table(V,Var) \ buffer_modification(Buffer,SVPs), slot_value_pair(S,var(V)) <=>
+  buffer_modification(Buffer,[(S,Var)|SVPs]).
   
-symbol_table(V, Var) \ compile_structure2(slot_rhs(slot_variable_pair(slot(S),variable(V))),R) <=>
-  R = [(S,Var)].
+buffer_modification(_,_), slot_value_pair(_,var(_)) <=>
+  fail. % vars on rhs must be bound, i.e. occur on lhs
+
+buffer_modification(Buffer,SVPs) <=>
+  slice(body,[buffer_change(Buffer,chunk(_,_,SVPs))]).
   
-compile_structure2(slot_rhs(slot_variable_pair(slot(S),variable(V))),R) <=>
-  symbol_table(V, Var),
-  R = [(S,Var)].
-   
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%% Buffer Request %%%%%%%%%%%%%
+
+buffer_request(Buffer,ChunkType,SVPs), slot_value_pair(S,val(V)) <=>
+  buffer_request(Buffer,ChunkType,[(S,V)|SVPs]).
+  
+symbol_table(V,Var) \ buffer_request(Buffer,ChunkType,SVPs), slot_value_pair(S,var(V)) <=>
+  buffer_request(Buffer,ChunkType,[(S,Var)|SVPs]).
+  
+buffer_request(_,_,_), slot_value_pair(_,var(_)) <=>
+  fail. % vars on rhs must be bound, i.e. occur on lhs
+
+buffer_request(Buffer,ChunkType,SVPs) <=>
+  slice(body,[buffer_request(Buffer,chunk(_,ChunkType,SVPs))]).
+  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%% Buffer Clear %%%%%%%%%%%%%%%%%%%%
+
+buffer_clearing(Buffer) <=>
+  slice(body,[buffer_clear(Buffer)]).
+  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%% Output %%%%%%%%%%%%%%%%%%%%
+
+output(val(V)) <=>
+  slice(body,[output(V)]).
+  
+symbol_table(V,Var) \ output(var(V)) <=>
+  slice(body,[output(Var)]).
+
+output(var(_)) <=>
+  fail. % vars on rhs must be bound, i.e. occur on lhs
+  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%% Rule Composition %%%%%%%%%%%%%
+
+% collect slices
+slice(T,L1), slice(T,L2) <=>
+  append(L1,L2,L),
+  slice(T,L).
+  
+% complete rule
+complete_rule, slice(name, Name), slice(hk,Hk), slice(hr,Hr), slice(guard,Guard), slice(body,Body) <=>
+  chrl(delay-Name,[fire|Hk],Hr,Guard,[conflict_set(Name)]),
+  chrl(Name,Hk,[apply_rule(Name)|Hr],Guard,Body),
+  init_utilities([Name]),
+  clear_symbol_table.
+  
+clear_symbol_table \ symbol_table(_,_) <=> true.
+clear_symbol_table <=> true.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%% Init Rule %%%%%%%%%%%%%%%%%%
+
+init(L1), init(L2) <=> 
+  append(L2,L1,L),
+  init(L).
+  
+init_rule, init(Body) <=>
+  chrl(init,[],[run],[],Body).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%% Init Utilities %%%%%%%%%%%%%%%
+
+init_utilities(L1), init_utilities(L2) <=>
+  append(L1,L2,L),
+  init_utilities(L).
+  
+init_utilities, init_utilities(L) <=>
+  init([init_utilities(L)]).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 footers :-
   chrl(no-rule,[],[fire],[],[conflict_set([]),choose]).
    
-  
+
+%%%%%%%%%%%%%%
+%%% Writer %%%
+%%%%%%%%%%%%%%
+   
 %
 % at end of block (which means at the end of the definition of this ACT-R production rule): 
 % delete all symbol_table constraints to clear symbol table.
