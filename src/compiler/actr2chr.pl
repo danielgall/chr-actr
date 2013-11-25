@@ -135,7 +135,7 @@ lisp_function(Functor,Args) <=>
 
 %% duplicate slot tests
 
-slot_test
+%%slot_test
   
 %%%% collect slot_tests for a buffer_test %%%
 
@@ -292,9 +292,9 @@ slice(T,L1), slice(T,L2) <=>
   
 % complete rule
 complete_rule, slice(name, Name), slice(hk,Hk), slice(hr,Hr), slice(guard,Guard), slice(body,Body) <=>
-  chrl(delay-Name,[fire|Hk],Hr,Guard,[conflict_set(Name)]),
-  chrl(Name,Hk,[apply_rule(Name)|Hr],Guard,Body),
-  init_utilities([Name]),
+  chrl(delay-Name,[fire|Hk],Hr,Guard,[conflict_set(rule(Name,[fire|Hk],Hr))]),
+  chrl(Name,Hk,[apply_rule(rule(Name,[fire|Hk],Hr))|Hr],Guard,Body),
+  set_default_utilities([Name]),
   clear_symbol_table.
   
 clear_symbol_table \ symbol_table(_,_) <=> true.
