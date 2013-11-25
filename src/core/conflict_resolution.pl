@@ -45,7 +45,7 @@ apply_rule(rule(P,_,_)) ==> P \== [] | write('firing rule '),write(P),nl.
 
 apply_rule(rule(P,_,_)) ==> P \== [] | get_now(Now), to_reward(P,Now).
 
-apply_rule(P), reward(P,R) ==>
+apply_rule(rule(P,_,_)), reward(P,R) ==>
   P \== [] |
   trigger_reward(R),
   write('reward triggered by rule '),
