@@ -53,9 +53,9 @@ set_default_utilities([P|Ps]) <=>
 
 conflict_set(_) \ conflict_set([]) <=> true.
   
-find-max-utility @ production_utility(P1,U1), production_utility(P2,U2) \ conflict_set(P1), conflict_set(P2) <=>
+find-max-utility @ production_utility(P1,U1), production_utility(P2,U2), conflict_set(rule(P1,_,_)) \ conflict_set(rule(P2,_,_)) <=>
   U1 >= U2 |
-  conflict_set(P1).
+  true.
 
 choose, conflict_set([]) <=>
   no_rule.
@@ -72,9 +72,9 @@ choose @ choose, conflict_set(P) <=>
 % Messages and reward triggering
 %
   
-apply_rule(P) ==> P \== [] | write('firing rule '),write(P),nl.
+apply_rule(rule(P,_,_)) ==> P \== [] | write('firing rule '),write(P),nl.
 
-apply_rule(P) ==> P \== [] | get_now(Now), to_reward(P,Now).
+apply_rule(rule(P,_,_)) ==> P \== [] | get_now(Now), to_reward(P,Now).
 
 apply_rule(P), reward(P,R) ==>
   P \== [] |
