@@ -293,8 +293,9 @@ slice(T,L1), slice(T,L2) <=>
 % complete rule
 complete_rule, slice(name, Name), slice(hk,Hk), slice(hr,Hr), slice(guard,Guard), slice(body,Body) <=>
   chrl(delay-Name,[fire|Hk],Hr,Guard,[conflict_set(rule(Name,[fire|Hk],Hr))]),
-  chrl(Name,Hk,[apply_rule(rule(Name,[fire|Hk],Hr))|Hr],Guard,Body),
-  set_default_utilities([Name]),
+  append(Body,[conflict_resolution],ResBody),
+  chrl(Name,Hk,[apply_rule(rule(Name,[fire|Hk],Hr))|Hr],Guard,ResBody),
+  init_utilities([Name]),
   clear_symbol_table.
   
 clear_symbol_table \ symbol_table(_,_) <=> true.
@@ -320,7 +321,7 @@ init_utilities(L1), init_utilities(L2) <=>
   init_utilities(L).
   
 init_utilities, init_utilities(L) <=>
-  init([init_utilities(L)]).
+  init([set_default_utilities(L)]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
