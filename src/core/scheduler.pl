@@ -1,4 +1,4 @@
-:- module('scheduler',[add_q/3,de_q/1,after_next_event/1,remove/1,get_now/1,now/1,conflict_resolution/0,nextcyc/0,no_rule/0,print_q/0]).
+:- module('scheduler',[add_q/3,de_q/1,after_next_event/1,remove/1,get_now/1,now/1,conflict_resolution/0,nextcyc/0,no_rule/0,print_q/0,stopat/1]).
 
 :- use_module(library(chr)).
 
@@ -37,6 +37,8 @@ call_event(q(Time,Priority,Evt)), now(Now) <=>
   write(' ... '),write('calling event: '), write(Evt),nl,
   call(Evt),
   nextcyc.
+  
+stopat(T), now(Now) <=> Now >= T | remove(X). % clear queue, if max time exceeded
 
 % if a production rule has been fired and has finished its actions (ie. added them to event queue), next conflict_resolution is scheduled,
 % because procedural module is free now. The time of the conflict_resolution is now. Priority is low, because first the actions of the performed production rule, that take place now, should be performed, before next production is chosen.
