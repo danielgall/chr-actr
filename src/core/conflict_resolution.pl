@@ -12,7 +12,7 @@ set_production_utility(P,U) <=>
   
 set_default_utilities([]) <=> true.
 set_default_utilities([P|Ps]) <=>
-  set_production_utility(P,5),
+  set_production_utility(P,0),
   set_default_utilities(Ps).
   
 %
@@ -43,7 +43,7 @@ choose @ choose, conflict_set(P) <=>
   
 apply_rule(rule(P,_,_)) ==> P \== [] | write('firing rule '),write(P),nl.
 
-apply_rule(rule(P,_,_)) ==> P \== [] | get_now(Now), to_reward(P,Now).
+apply_rule(rule(P,_,_)) ==> P \== [] | get_now(Now), FireTime is Now-0.05,to_reward(P,FireTime).
 
 apply_rule(rule(P,_,_)), reward(P,R) ==>
   P \== [] |
@@ -60,13 +60,15 @@ set_reward(P,R), reward(P,_) <=>
   
 set_reward(P,R) <=>
   reward(P,R).
-  
+    
 trigger_reward(R), production_utility(P,U) \ to_reward(P,FireTime) <=>
   calc_reward(R,FireTime,Reward),
   get_conf(alpha,Alpha),
   NewU is U + Alpha*(Reward-U),
   set_production_utility(P,NewU),
-  write('triggered reward for rule: '),write(P),nl.
+  write('triggered reward for rule: '),write(P),nl,
+  write('U(n-1) = '),write(U),write(' R(n) = '),write(R),write(' ('),write(R),write(' - '),get_now(Now),Diff is R - (Now-FireTime),write(Diff),write(')'),nl,
+  write('U(n) = '),write(NewU),nl.
   
 calc_reward(R,FireTime,Reward) :-
   get_now(Now),
