@@ -1,4 +1,4 @@
-:- module('scheduler',[add_q/3,de_q/1,after_next_event/1,get_now/1,now/1,conflict_resolution/0,nextcyc/0,no_rule/0]).
+:- module('scheduler',[add_q/3,de_q/1,after_next_event/1,remove/1,get_now/1,now/1,conflict_resolution/0,nextcyc/0,no_rule/0,print_q/0]).
 
 :- use_module(library(chr)).
 
