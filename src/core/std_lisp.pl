@@ -44,3 +44,10 @@ lisp_spp([P,:,reward,R|Rest]) <=>
   set_reward(P,R),
   lisp_spp(Rest).
   
+lisp_spp([P,:,success,V|Rest]) <=>
+  set_success(P,V),
+  lisp_spp(Rest).
+  
+lisp_spp([P,:,failure,V|Rest]) <=>
+  set_failure(P,V),
+  lisp_spp(Rest).
