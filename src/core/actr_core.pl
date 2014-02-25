@@ -31,4 +31,6 @@ context(C), collect_context(Context) <=> Context = C.
 
 % uncomment desired conflict resolution mechanism
 :- include('conflict_resolution.pl').
+%:- include('conflict_resolution_old.pl').
+%:- include('conflict_resolution_optimist.pl').
 %:- include('conflict_resolution_refraction.pl').
