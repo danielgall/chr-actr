@@ -1,4 +1,5 @@
-:- include('actr_core.pl').
+file_search_path(chractr,'.').
+:- include(chractr('actr_core.pl')).
 :- chr_constraint run/0, fire/0.
 
 
