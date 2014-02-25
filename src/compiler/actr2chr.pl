@@ -376,7 +376,8 @@ stream(S, write) \ chr(N, K,R,G,B) <=> K \== true, R \== true | write(S, N @ K\R
 
 %headers
 stream(S, write) \ chr_headers <=>
-  write(S, ':- include(\'actr_core.pl\').\n'),
+  write(S, 'file_search_path(chractr,\'.\').\n'),
+  write(S, ':- include(chractr(\'actr_core.pl\')).\n'),
   write(S, ':- chr_constraint run/0, fire/0.\n'),
   write(S, '\n\n').
 
