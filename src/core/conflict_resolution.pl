@@ -9,6 +9,7 @@ round(X,Precision,X1) :-
 :- chr_constraint set_production_utility/2, production_utility/2, set_default_utilities/1, conflict_set/1, choose/0, apply_rule/1, reward/2, set_reward/2, trigger_reward/1, to_reward/1.
 
 set_production_utility(P,U), production_utility(P,_) <=> 
+  %U1 is U,
   round(U,6,U1),
   production_utility(P,U1),
   write('setting utility of '),write(P),write(' to '),writeln(U1).
@@ -82,7 +83,9 @@ merge([(P1,T1)|R1],[(P2,T2)|R2],Res) :-
   T1 > T2,
   merge([(P1,T1)|R1],R2,L),
   Res = [(P2,T2)|L].
-    
+ 
+to_reward([]) <=> true. 
+ 
 trigger_reward(R), production_utility(P,U) \ to_reward([(P,FireTime)|Rest]) <=>
   calc_reward(R,FireTime,Reward),
   get_conf(alpha,Alpha),
@@ -95,6 +98,7 @@ trigger_reward(R), production_utility(P,U) \ to_reward([(P,FireTime)|Rest]) <=>
   
 calc_reward(R,FireTime,Reward) :-
   get_now(Now),
-  Reward is R - (Now-FireTime).
+  round(FireTime,6,FireTime1),
+  Reward is R - (Now-FireTime1).
   
 trigger_reward(_) <=> true. % no more rules to reward
