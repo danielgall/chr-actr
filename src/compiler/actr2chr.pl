@@ -135,7 +135,8 @@ lisp_function(Functor,Args) <=>
 
 %% duplicate slot tests
 
-%%slot_test
+slice(hk,[chunk_has_slot(C,S,V1)]) \ slice(hk,[chunk_has_slot(C,S,V2)]) <=>
+  V1=V2.
   
 %%%% collect slot_tests for a buffer_test %%%
 
