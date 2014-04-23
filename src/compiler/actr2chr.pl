@@ -133,10 +133,23 @@ lisp_function(Functor,Args) <=>
 
 %%%%%%%%%%%% Buffer Tests %%%%%%%%%%%%%%%%%%%
 
-%% duplicate slot tests
+%%% duplicate slot tests
+%%
 
+%remove duplicate and try to unify slot values
 slice(hk,[chunk_has_slot(C,S,V1)]) \ slice(hk,[chunk_has_slot(C,S,V2)]) <=>
+  unifiable(V1,V2,_) |
   V1=V2.
+  
+% contradictory slot tests
+% just add condition to guard (will make rule unfirable)
+% and print warning
+slice(hk,[chunk_has_slot(C,S,V1)]) \ slice(hk,[chunk_has_slot(C,S,V2)]) <=>
+  \+unifiable(V1,V2,_) |
+  slice(guard,[V1==V2]),
+  writeln('Warning: contradictory slot tests: '),
+  write('   '),write(S),write('  '),write(V1),nl,
+  write('   '),write(S),write('  '),write(V2),nl.
   
 %%%% collect slot_tests for a buffer_test %%%
 
