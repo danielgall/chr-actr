@@ -44,7 +44,7 @@ slot_tests([slot_test(=,S,val(V))|SVPs]) --> [S, V], { identifier(S), identifier
 slot_tests([]) --> [].
 
 % A buffer_query specifies a buffer and an arbitrary number of query_tests and is indicated by a ?
-buffer_query(buffer_query(Buffer,QueryTests)) --> [?, Buffer, >],{ identifier(Buffer) },!, query_tests(QueryTests).
+buffer_query(buffer_query(Buffer,QueryTests)) --> [?, Buffer, >],{ identifier(Buffer), nl,nl,writeln(Buffer) },!, query_tests(QueryTests).
 
 % A query_test consists of a (modified) item-value-pair or item-variable-pair
 % there may be multiple query_tests in a buffer_query
@@ -83,7 +83,7 @@ slot_value_pairs([]) --> [].
 
 % no keywords/special chars
 identifier(X) :-
-  X \== '=', X \== '>', X \== '+', X \== '-', X \== '!', X \== '(', X \== ')', X \== '==>'.
+  X \== '=', X \== '>', X \== '+', X \== '-', X \== '!', X \== '(', X \== ')', X \== '==>', X \== '?'.
 
 % list of allowed slot_modifiers
 slot_modifier(M) :-
