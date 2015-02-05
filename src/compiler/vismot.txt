@@ -1,0 +1,76 @@
+(define-model vismot
+
+(chunk-type goal state caption x y)
+
+(add-dm
+ (g isa goal state start)
+ )
+
+(p start
+   =goal>
+      isa 	goal
+      state	start
+==>
+   +visual-location>
+      isa	visual-location
+   +manual>
+      isa       hand-to-mouse
+   =goal>
+      state	attend-object
+)
+
+(p attend-object
+   =goal>
+      isa	goal
+      state	attend-object
+  =visual-location>
+      isa    	visual-location
+      screen-x	=x
+      screen-y	=y
+  ?visual>
+      state   free
+==>
+   +visual>
+      isa	move-attention
+      screen-pos-x =x
+      screen-pos-y =y
+   =goal>
+      state	read-and-move
+      x		=x
+      y		=y
+)
+
+
+(p read-and-move
+   =goal>
+      isa	goal
+      state	read-and-move
+      x		=x
+      y		=y
+  =visual>
+      isa    	text
+      value     =caption
+==>
+   =goal>
+      state	click
+      caption   =caption
+   +manual>
+      isa       move-cursor
+      loc-x     =x
+      loc-y     =y
+)
+
+(p click
+=goal>
+      isa       goal
+      state	click
+?manual>
+  state free
+==>
+   +manual>
+      isa       click-mouse
+)
+
+(goal-focus g)
+
+)
