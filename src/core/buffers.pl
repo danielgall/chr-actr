@@ -64,10 +64,10 @@
 % Rules %
 %%%%%%%%%
 
-:- chr_constraint do_buffer_request/2,do_buffer_change/2,do_buffer_clear/1, buffer_state/2, set_buffer_state/2, performed_request/3.
+:- chr_constraint do_buffer_request/2,do_buffer_change/2,do_buffer_clear/1, buffer_state/3, set_buffer_state/2, performed_request/3.
 
 % write error state
-buffer_state(BufName,error) ==> write('error in buffer '),write(BufName),nl.
+buffer_state(BufName,state,error) ==> write('error in buffer '),write(BufName),nl.
 
 % Handle add_buffer
 buffer(BufName, _, _) \ add_buffer(BufName, _) <=> false. % buffers must have distinct names
@@ -76,7 +76,7 @@ buffer(BufName, _, _) \ add_buffer(BufName, _) <=> false. % buffers must have di
 add_buffer(BufName, ModName) <=> 
   ModName:init(BufName), % call init function of module
   buffer(BufName, ModName, nil),
-  buffer_state(BufName,free). 
+  buffer_state(BufName,state,free). 
 
 % Schedule start of request
 buffer_request(BufName, Chunk) <=>
@@ -84,20 +84,23 @@ buffer_request(BufName, Chunk) <=>
   add_q(Now,0,start_request(BufName,Chunk)).
   
 % Schedule buffer_request
-buffer(BufName, ModName, _) \ start_request(BufName, Chunk) <=> %% todo: check for free buffer!!
+buffer(BufName, ModName, _) \ buffer_state(BufName,state,free), start_request(BufName, Chunk) <=> %% todo: check for free buffer!!
   write('Started buffer request '),
   write(BufName),nl,
   get_now(Now),
-  buffer_state(BufName,busy),
+  buffer_state(BufName,state,busy),
   do_buffer_clear(BufName), % clear buffer immediately
   get_context(Context),
   ModName:module_request(BufName, Chunk, Context, ResChunk,ResState,RelTime),
   performed_request(BufName, ResChunk, ResState), % save result of request
   Time is Now + RelTime, 
   add_q(Time, 0, do_buffer_request(BufName, Chunk)).
+ 
+buffer(BufName, ModName, _),  buffer_state(BufName,state,busy) \ start_request(BufName, Chunk) <=>
+  writeln('Error: requested buffer is busy').
   
 % Handle buffer_request
-do_buffer_request(BufName, _), buffer(BufName, ModName, _), buffer_state(BufName,_), performed_request(BufName, ResChunk, ResState) <=>  %% todo: check for free buffer!!
+do_buffer_request(BufName, _), buffer(BufName, ModName, _), buffer_state(BufName,state,_), performed_request(BufName, ResChunk, ResState) <=>  %% todo: check for free buffer!!
   write('performing request: '),write(BufName),nl,
   (ResState=error, 
   buffer(BufName, ModName, nil),
@@ -112,7 +115,7 @@ do_buffer_request(BufName, _), buffer(BufName, ModName, _), buffer_state(BufName
   write('Put chunk '),
   write(ResChunkName),
   write(' into buffer'),nl,
-  buffer_state(BufName,free)). 
+  buffer_state(BufName,state,free)). 
   
 % Schedule buffer_change
 buffer_change(BufName, Chunk) <=> 
@@ -139,7 +142,7 @@ set_buffer(BufName, nil), buffer(BufName, ModName, _)  <=>
 set_buffer(BufName, chunk(ChunkName, _, _)), buffer(BufName, ModName, _) <=>
   buffer(BufName, ModName, ChunkName).
   
-set_buffer_state(BufName, State), buffer_state(BufName, _) <=> buffer_state(BufName, State).
+set_buffer_state(BufName, State), buffer_state(BufName,state,_) <=> buffer_state(BufName,state,State).
 
 
 % Schedule buffer_clear

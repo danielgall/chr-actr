@@ -48,15 +48,20 @@ choose @ choose, conflict_set(P) <=>
 % Messages and reward triggering
 %
   
-apply_rule(rule(P,_,_)) ==> P \== [] | write('firing rule '),write(P),nl.
+apply_rule(rule(P,_,_)) ==> 
+  P \== [] | 
+    write('firing rule '),write(P),nl.
 
-apply_rule(rule(P,_,_)) ==> P \== [] | get_now(Now), FireTime is Now-0.05,to_reward([(P,FireTime)]).
+apply_rule(rule(P,_,_)) ==> 
+  P \== [] | 
+    get_now(Now), 
+    FireTime is Now-0.05,
+    to_reward([(P,FireTime)]).
 
 apply_rule(rule(P,_,_)), reward(P,R) ==>
   P \== [] |
-  trigger_reward(R),
-  write('reward triggered by rule '),
-  write(P),nl.
+    trigger_reward(R),
+    write('reward triggered by rule '),write(P),nl.
   
 %
 % Handle rewards

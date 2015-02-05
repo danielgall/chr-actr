@@ -83,9 +83,6 @@ chunk(Name,Type) \ add_chunk(chunk(Name,Type,Slots)) <=>
 
 reduce @ chunk(C1,_), identical(C1,C2) \ identical(C2,C3) <=> identical(C1,C3).
 
-%% TODO: delete this rule???
-%identical(_,C) \ add_chunk(chunk(C,_,_)) <=> true.
-
 % empty chunk will not be added
 add_chunk(nil) <=> true.
 
